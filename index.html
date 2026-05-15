@@ -243,6 +243,7 @@ textarea.fv { resize: vertical; min-height: 56px; line-height: 1.5; }
     <button class="ts-btn on" onclick="setFS(15,this)">A</button>
     <button class="ts-btn" onclick="setFS(18,this)">A+</button>
   </div>
+  <button class="btn btn-s" onclick="openAdmin()" style="margin-left:8px;font-size:11px;padding:5px 9px;">🔑 Admin</button>
 </header>
 
 <!-- SHELL -->
@@ -407,109 +408,103 @@ textarea.fv { resize: vertical; min-height: 56px; line-height: 1.5; }
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- ADMIN MODAL -->
+<div id="admin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);padding:20px;border-radius:4px;width:320px;border:1px solid var(--border);">
+    <h3 style="margin-bottom:10px;font-family:var(--ff);font-size:14px;">Admin Access</h3>
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:10px;">Enter your GitHub Personal Access Token to enable saving and photo uploads.</p>
+    <input type="password" id="gh-token" placeholder="ghp_..." style="width:100%;padding:8px;margin-bottom:15px;border:1px solid var(--border);border-radius:3px;"/>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn btn-s" onclick="document.getElementById('admin-modal').style.display='none'">Cancel</button>
+      <button class="btn btn-p" onclick="saveAdminToken()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const DEFAULTS = [
-  { id:"RWL-01", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 1",
-    name:"Nitawade Kasari River Bridge", shortCode:"NITAWADE",
-    lat:16.744708, lng:74.141653, river:"Kasari River", auth:"WRD",
-    location:"Nitawade Jackwell, Tributary River Kasari, near Yevluj village, Kolhapur District",
-    host:"Grampanchayat Yevluj (Site Owner)",
-    notes:"Jackwell site owned by Grampanchayat Yevluj. Radar sensor installed to monitor Kasari River water level.",
-    contacts:[{role:"Grampanchayat Clerk",name:"Santosh Patil",phone:"8928411919"},{role:"Pump Operator",name:"Hanmant Patil",phone:"9049720493"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-02", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 2",
-    name:"Jayanti Nala — Wilson Bridge", shortCode:"JAY-NALA",
-    lat:16.700447, lng:74.231292, river:"Jayanti Nala", auth:"KMC",
-    location:"Wilson Bridge, Jayanti Nala. Building terrace of Anandrao Jadhav Rolling Shutters, Kolhapur",
-    host:"Private — Anandrao Jadhav (Rolling Shutters)",
-    notes:"Radar sensor mounted on private terrace overlooking Wilson Bridge over Jayanti Nala.",
-    contacts:[{role:"Site Owner",name:"Amit Jadhav",phone:"9850150382"},{role:"Site Contact",name:"Abhijit Jadhav",phone:"9673594534"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-03", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 3",
-    name:"Ichalkaranji Bridge (New Bridge)", shortCode:"ICHAL-RWL",
-    lat:16.665844, lng:74.475964, river:"Panchganga River", auth:"WRD",
-    location:"New Bridge, Ichalkaranji, Hupari–Ichalkaranji Road, Kolhapur District",
-    host:"NHAI (National Highways Authority of India)",
-    notes:"RWL sensor on new Ichalkaranji bridge, Hupari–Ichalkaranji Road. Site permission from NHAI.",
-    contacts:[],
-    con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-04", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 4",
-    name:"Chhatrapati Shivaji Maharaj Bridge", shortCode:"SHIVAJI-BR",
-    lat:16.707175, lng:74.217525, river:"Panchganga River", auth:"KMC",
-    location:"Shivaji Bridge, Kolhapur — National Highway NH-166, Wadnage",
-    host:"NHAI (National Highways Authority of India)",
-    notes:"RWL sensor on CSM Bridge (Shivaji Bridge), NH-166. Site permission from NHAI.",
-    contacts:[],
-    con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-05", type:"ref", typeName:"RWL Reference Point", siteNum:"Reference",
-    name:"Balinge Bhogawati River Bridge", shortCode:"BALINGE",
-    lat:16.691667, lng:74.165422, river:"Bhogawati River", auth:"WRD",
-    location:"Balinge village, Bhogawati River Bridge, Kolhapur District",
-    host:"—", notes:"Reference water-level monitoring point only. No radar instrument installed at this location.",
-    contacts:[],
-    con:"", conPh:"", fabn:"", fabPh:"",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"", ser:"", inotes:"", images:[] },
-  { id:"RG-01", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 01",
-    name:"CCCSS Master Control", shortCode:"CCCSS SU",
-    lat:16.68115, lng:74.25431, river:"—", auth:"CCCSS",
-    location:"CCCSS Campus, Kolhapur — Central Master Control Unit",
-    host:"Centre for Citizen and Consumer Studies, Kolhapur",
-    notes:"Master control and data hub for the entire rain gauge telemetry network.",
-    contacts:[],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-02", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 02",
-    name:"Rukadi Station", shortCode:"RUKADI",
-    lat:16.72827, lng:74.35814, river:"—", auth:"—",
-    location:"Rukadi Village, Kolhapur District",
-    host:"Mahatma Gandhi Jr. College & Madhymik Vidyalay, Rukadi",
-    notes:"Rain gauge installed at school premises in Rukadi village.",
-    contacts:[{role:"Vice Principal",name:"Jayram Patil",phone:"9730310910"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-03", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 03",
-    name:"Pattan Kodoli", shortCode:"PATTAN",
-    lat:16.650493, lng:74.365707, river:"—", auth:"—",
-    location:"Pattan Kodoli Village, Kolhapur District",
-    host:"Bapuso Hupare High School, Pattan Kodoli",
-    notes:"Rain gauge installed at Bapuso Hupare High School premises.",
-    contacts:[{role:"Principal",name:"D.G. Nejkar",phone:"9422027493"},{role:"Vice Principal",name:"S.Y. Kanagale",phone:"7972506582"},{role:"Office Boy",name:"—",phone:"8552990646"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-04", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 04",
-    name:"Ichalkaranji", shortCode:"ICHAL",
-    lat:16.691702, lng:74.451817, river:"—", auth:"—",
-    location:"Ichalkaranji Town, Kolhapur District",
-    host:"Dattajirao Kadam Jr. College of Arts, Science & Commerce, Ichalkaranji",
-    notes:"Rain gauge installed at Dattajirao Kadam Jr. College campus.",
-    contacts:[{role:"Geography HOD",name:"Sunil Bhosle",phone:"8605629063"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-05", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 05",
-    name:"Nigave Dhumala", shortCode:"NIGAVE",
-    lat:16.745585, lng:74.208378, river:"—", auth:"—",
-    location:"Nigave Dhumala Village, Kolhapur District",
-    host:"Shri Jyotibling High School & Dynanmandir, Nigave Dhumala",
-    notes:"Rain gauge installed at Shri Jyotibling High School premises.",
-    contacts:[{role:"Principal",name:"—",phone:"9421215982"}],
-    con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995",
-    fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] }
+  { id:"RWL-01", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 1", name:"Nitawade Kasari River Bridge", shortCode:"NITAWADE", lat:16.744708, lng:74.141653, river:"Kasari River", auth:"WRD", location:"Nitawade Jackwell, Tributary River Kasari, near Yevluj village, Kolhapur District", host:"Grampanchayat Yevluj (Site Owner)", notes:"Jackwell site owned by Grampanchayat Yevluj. Radar sensor installed to monitor Kasari River water level.", contacts:[{role:"Grampanchayat Clerk",name:"Santosh Patil",phone:"8928411919"},{role:"Pump Operator",name:"Hanmant Patil",phone:"9049720493"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
+  { id:"RWL-02", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 2", name:"Jayanti Nala — Wilson Bridge", shortCode:"JAY-NALA", lat:16.700447, lng:74.231292, river:"Jayanti Nala", auth:"KMC", location:"Wilson Bridge, Jayanti Nala. Building terrace of Anandrao Jadhav Rolling Shutters, Kolhapur", host:"Private — Anandrao Jadhav (Rolling Shutters)", notes:"Radar sensor mounted on private terrace overlooking Wilson Bridge over Jayanti Nala.", contacts:[{role:"Site Owner",name:"Amit Jadhav",phone:"9850150382"},{role:"Site Contact",name:"Abhijit Jadhav",phone:"9673594534"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
+  { id:"RWL-03", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 3", name:"Ichalkaranji Bridge (New Bridge)", shortCode:"ICHAL-RWL", lat:16.665844, lng:74.475964, river:"Panchganga River", auth:"WRD", location:"New Bridge, Ichalkaranji, Hupari–Ichalkaranji Road, Kolhapur District", host:"NHAI (National Highways Authority of India)", notes:"RWL sensor on new Ichalkaranji bridge, Hupari–Ichalkaranji Road. Site permission from NHAI.", contacts:[], con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
+  { id:"RWL-04", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 4", name:"Chhatrapati Shivaji Maharaj Bridge", shortCode:"SHIVAJI-BR", lat:16.707175, lng:74.217525, river:"Panchganga River", auth:"KMC", location:"Shivaji Bridge, Kolhapur — National Highway NH-166, Wadnage", host:"NHAI (National Highways Authority of India)", notes:"RWL sensor on CSM Bridge (Shivaji Bridge), NH-166. Site permission from NHAI.", contacts:[], con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
+  { id:"RWL-05", type:"ref", typeName:"RWL Reference Point", siteNum:"Reference", name:"Balinge Bhogawati River Bridge", shortCode:"BALINGE", lat:16.691667, lng:74.165422, river:"Bhogawati River", auth:"WRD", location:"Balinge village, Bhogawati River Bridge, Kolhapur District", host:"—", notes:"Reference water-level monitoring point only. No radar instrument installed at this location.", contacts:[], con:"", conPh:"", fabn:"", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"", ser:"", inotes:"", images:[] },
+  { id:"RG-01", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 01", name:"CCCSS Master Control", shortCode:"CCCSS SU", lat:16.68115, lng:74.25431, river:"—", auth:"CCCSS", location:"CCCSS Campus, Kolhapur — Central Master Control Unit", host:"Centre for Citizen and Consumer Studies, Kolhapur", notes:"Master control and data hub for the entire rain gauge telemetry network.", contacts:[], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
+  { id:"RG-02", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 02", name:"Rukadi Station", shortCode:"RUKADI", lat:16.72827, lng:74.35814, river:"—", auth:"—", location:"Rukadi Village, Kolhapur District", host:"Mahatma Gandhi Jr. College & Madhymik Vidyalay, Rukadi", notes:"Rain gauge installed at school premises in Rukadi village.", contacts:[{role:"Vice Principal",name:"Jayram Patil",phone:"9730310910"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
+  { id:"RG-03", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 03", name:"Pattan Kodoli", shortCode:"PATTAN", lat:16.650493, lng:74.365707, river:"—", auth:"—", location:"Pattan Kodoli Village, Kolhapur District", host:"Bapuso Hupare High School, Pattan Kodoli", notes:"Rain gauge installed at Bapuso Hupare High School premises.", contacts:[{role:"Principal",name:"D.G. Nejkar",phone:"9422027493"},{role:"Vice Principal",name:"S.Y. Kanagale",phone:"7972506582"},{role:"Office Boy",name:"—",phone:"8552990646"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
+  { id:"RG-04", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 04", name:"Ichalkaranji", shortCode:"ICHAL", lat:16.691702, lng:74.451817, river:"—", auth:"—", location:"Ichalkaranji Town, Kolhapur District", host:"Dattajirao Kadam Jr. College of Arts, Science & Commerce, Ichalkaranji", notes:"Rain gauge installed at Dattajirao Kadam Jr. College campus.", contacts:[{role:"Geography HOD",name:"Sunil Bhosle",phone:"8605629063"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
+  { id:"RG-05", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 05", name:"Nigave Dhumala", shortCode:"NIGAVE", lat:16.745585, lng:74.208378, river:"—", auth:"—", location:"Nigave Dhumala Village, Kolhapur District", host:"Shri Jyotibling High School & Dynanmandir, Nigave Dhumala", notes:"Rain gauge installed at Shri Jyotibling High School premises.", contacts:[{role:"Principal",name:"—",phone:"9421215982"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] }
 ];
 
-const LS='panchganga-v3';
 let stations=[], curId=null, curFilter='all', curQ='', lbIdx=0;
 let map, markers={}, layers=[], curLayer=0;
+const GH_OWNER = 'satwikcccss-crypto';
+const GH_REPO = 'CCCSS-SUK-Instruments-Log';
+let dataSha = null;
 
-function loadData(){
-  try{ const raw=localStorage.getItem(LS); const saved=raw?JSON.parse(raw):[];
-    stations=DEFAULTS.map(d=>{ const s=saved.find(x=>x.id===d.id); return s?{...d,...s}:{...d}; });
-  }catch{ stations=DEFAULTS.map(d=>({...d})); }
+async function loadData() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data.json?t=${Date.now()}`);
+    if (res.ok) {
+      const json = await res.json();
+      dataSha = json.sha;
+      const content = decodeURIComponent(escape(atob(json.content)));
+      stations = JSON.parse(content);
+    } else {
+      const fallback = await fetch('data.json?t=' + Date.now());
+      stations = await fallback.json();
+    }
+  } catch (e) {
+    console.warn("Failed to load data.json (CORS/file protocol issue). Using DEFAULTS.");
+    stations = JSON.parse(JSON.stringify(DEFAULTS));
+  }
+  initMap(); 
+  renderSidebar();
 }
-function save(){ localStorage.setItem(LS,JSON.stringify(stations)); }
+
+function saveAdminToken() {
+  const t = document.getElementById('gh-token').value.trim();
+  if (t) localStorage.setItem('gh_token', t);
+  else localStorage.removeItem('gh_token');
+  document.getElementById('admin-modal').style.display='none';
+  toast('Admin token updated.');
+}
+function openAdmin() {
+  document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+  document.getElementById('admin-modal').style.display='flex';
+}
+
+async function uploadToGitHub(path, content, message, isBase64 = false) {
+  const token = localStorage.getItem('gh_token');
+  if (!token) throw new Error('No Admin Token set. Click 🔑 Admin to add it.');
+
+  const body = { message, content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))) };
+  if (path === 'data.json' && dataSha) body.sha = dataSha;
+
+  const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'GitHub API error');
+  }
+  const resData = await res.json();
+  if (path === 'data.json') dataSha = resData.content.sha;
+  return resData.content;
+}
+
+async function save() {
+  toast('Saving to GitHub...');
+  try {
+    await uploadToGitHub('data.json', JSON.stringify(stations, null, 2), 'Update station data');
+    toast('Data saved successfully to GitHub!');
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  }
+}
+
 function getS(id){ return stations.find(s=>s.id===id); }
 function setS(id,p){ const i=stations.findIndex(s=>s.id===id); if(i>=0){stations[i]={...stations[i],...p};save();} }
 
@@ -650,86 +645,73 @@ function delContact(i){
   setS(curId,{contacts:cs}); renderContacts(cs);
 }
 
+function getImgSrc(imgData) {
+  if (imgData.startsWith('data:') || imgData.startsWith('http')) return imgData;
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${imgData}`;
+}
 function renderImages(imgs){
   document.getElementById('igrid').innerHTML=!imgs||!imgs.length
     ?'<div class="no-img">No photographs uploaded yet.<br>Upload site and instrument images here.</div>'
-    :imgs.map((img,i)=>`<div class="ithumb"><img src="${img.data}" alt="${img.cap||''}" loading="lazy"/><div class="icap">${img.cap||('Image '+(i+1))}</div><div class="iov"><button class="ibtn" onclick="openLB(${i})">🔍</button><button class="ibtn" onclick="editCap(${i})">✏️</button><button class="ibtn" onclick="delImg(${i})">🗑</button></div></div>`).join('');
+    :imgs.map((img,i)=>`<div class="ithumb"><img src="${getImgSrc(img.data)}" alt="${img.cap||''}" loading="lazy"/><div class="icap">${img.cap||('Image '+(i+1))}</div><div class="iov"><button class="ibtn" onclick="openLB(${i})">🔍</button><button class="ibtn" onclick="editCap(${i})">✏️</button><button class="ibtn" onclick="delImg(${i})">🗑</button></div></div>`).join('');
 }
 function handleFiles(e){ procFiles(Array.from(e.target.files)); e.target.value=''; }
 function dvOver(e){ e.preventDefault(); document.getElementById('upa').classList.add('dov'); }
 function dvLeave(){ document.getElementById('upa').classList.remove('dov'); }
 function dvDrop(e){ e.preventDefault(); dvLeave(); procFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))); }
-function procFiles(files){
-
+async function procFiles(files){
   const s = getS(curId);
-
   if(!s) return;
+  const token = localStorage.getItem('gh_token');
+  if(!token) { alert('Please enter your Admin Token (🔑 Admin button) to upload photos.'); return; }
 
   const imgs = [...(s.images || [])];
-
-  let completed = 0;
-
-  files.forEach(file => {
-
-    if(!file.type.startsWith('image/')) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(ev){
-
-      const img = new Image();
-
-      img.onload = function(){
-
-        const canvas = document.createElement('canvas');
-
-        const MAX_WIDTH = 1200;
-
-        let width = img.width;
-        let height = img.height;
-
-        if(width > MAX_WIDTH){
-          height = height * (MAX_WIDTH / width);
-          width = MAX_WIDTH;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-
-        imgs.push({
-          data: compressedImage,
-          cap: file.name.replace(/\.[^.]+$/, ''),
-          date: new Date().toLocaleDateString('en-IN')
-        });
-
-        completed++;
-
-        if(completed === files.length){
-
-          setS(curId, { images: imgs });
-
-          renderImages(imgs);
-
-          toast(`${completed} image(s) uploaded successfully.`);
-        }
+  
+  for(let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if(!file.type.startsWith('image/')) continue;
+    
+    toast(`Uploading ${file.name} (${i+1}/${files.length})...`);
+    
+    const base64Data = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width, height = img.height;
+          const MAX = 1200;
+          if(width > MAX) { height = height * (MAX / width); width = MAX; }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+        };
+        img.src = ev.target.result;
       };
-
-      img.src = ev.target.result;
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
+      reader.readAsDataURL(file);
+    });
+    
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+    const path = `photos/${curId}/${Date.now()}_${safeName}`;
+    
+    try {
+      await uploadToGitHub(path, base64Data, `Upload photo for ${curId}`, true);
+      imgs.push({
+        data: path,
+        cap: file.name.replace(/\.[^.]+$/, ''),
+        date: new Date().toLocaleDateString('en-IN')
+      });
+    } catch(e) {
+      alert(`Upload failed for ${file.name}: ` + e.message);
+    }
+  }
+  
+  setS(curId, { images: imgs });
+  renderImages(imgs);
 }
 function delImg(i){ if(!confirm('Remove this image from the record?')) return; const s=getS(curId); const imgs=[...(s.images||[])]; imgs.splice(i,1); setS(curId,{images:imgs}); renderImages(imgs); }
 function editCap(i){ const s=getS(curId); const cap=prompt('Edit image caption:',s.images[i]?.cap||''); if(cap===null) return; const imgs=[...(s.images||[])]; imgs[i].cap=cap; setS(curId,{images:imgs}); renderImages(imgs); }
-function openLB(i){ lbIdx=i; const s=getS(curId); if(!s||!s.images[i]) return; document.getElementById('lb-img').src=s.images[i].data; document.getElementById('lb-cap').textContent=`${s.images[i].cap||'Image '+(i+1)}  —  ${s.images[i].date||''}`; document.getElementById('lb').classList.add('open'); }
+function openLB(i){ lbIdx=i; const s=getS(curId); if(!s||!s.images[i]) return; document.getElementById('lb-img').src=getImgSrc(s.images[i].data); document.getElementById('lb-cap').textContent=`${s.images[i].cap||'Image '+(i+1)}  —  ${s.images[i].date||''}`; document.getElementById('lb').classList.add('open'); }
 function closeLB(){ document.getElementById('lb').classList.remove('open'); }
 function lbNav(d){ const s=getS(curId); if(!s) return; lbIdx=(lbIdx+d+s.images.length)%s.images.length; openLB(lbIdx); }
 
@@ -739,7 +721,7 @@ function exportJSON(){ const s=getS(curId); if(!s) return; const blob=new Blob([
 let _tt;
 function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2800); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeLB();closeModal();} if(document.getElementById('lb').classList.contains('open')){ if(e.key==='ArrowLeft')lbNav(-1); if(e.key==='ArrowRight')lbNav(1); } });
-window.addEventListener('DOMContentLoaded',()=>{ loadData(); initMap(); renderSidebar(); });
+window.addEventListener('DOMContentLoaded', loadData);
 </script>
 </body>
 </html>
