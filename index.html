@@ -505,7 +505,7 @@ function logout() {
   toast('Logged out.');
 }
 function openAdmin() {
-  document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+  document.getElementById('gh-token').value = ''; 
   document.getElementById('admin-modal').style.display='flex';
 }
 
