@@ -1,597 +1,1592 @@
 <!DOCTYPE html>
 <!-- Version: 1.0.6 - GitHub API & Magic Link Active -->
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Panchganga Upper Reach River Basin — Hydro Monitoring Network</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --fs: 15px;
-  --ff: "Times New Roman", Times, Georgia, serif;
-  --bg:        #f5f2ec;
-  --surface:   #ffffff;
-  --surface2:  #f9f7f3;
-  --border:    #cec9be;
-  --border2:   #e0dbd2;
-  --ink:       #1a1714;
-  --ink2:      #3d3830;
-  --ink3:      #6b6156;
-  --ink4:      #9c8f81;
-  --c-radar:   #8b1a1a;
-  --c-rain:    #1a4f8b;
-  --c-ref:     #2d6a2d;
-  --accent:    #8b1a1a;
-  --accent-lt: #fdf0f0;
-  --sidebar-w: 300px;
-  --hdr-h: 54px;
-}
-html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--ff); font-size: var(--fs); }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Panchganga Upper Reach River Basin — Hydro Monitoring Network</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* HEADER */
-#hdr {
-  position: fixed; top: 0; left: 0; right: 0; height: var(--hdr-h);
-  background: var(--surface); border-bottom: 3px solid var(--accent);
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 14px; z-index: 500;
-  box-shadow: 0 1px 6px rgba(0,0,0,.10);
-}
-#hdr-logo { display: flex; align-items: center; gap: 9px; border-right: 1px solid var(--border); padding-right: 12px; }
-#hdr-title { flex: 1; min-width: 0; }
-#hdr-title h1 { font-size: 13px; font-weight: bold; letter-spacing: .3px; color: var(--ink); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hdr-title p  { font-size: 10px; color: var(--ink3); margin-top: 1px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ts-ctrl { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
-.ts-lbl  { font-size: 9px; color: var(--ink4); padding: 0 6px; border-right: 1px solid var(--border); line-height: 1; font-style: italic; }
-.ts-btn  { background: var(--surface2); border: none; cursor: pointer; padding: 5px 9px; color: var(--ink2); font-family: var(--ff); line-height: 1; transition: background .15s; }
-.ts-btn:hover { background: var(--bg); }
-.ts-btn.on { background: var(--accent); color: #fff; font-weight: bold; }
-#burger { display: none; background: none; border: 1px solid var(--border); border-radius: 3px; padding: 5px 9px; cursor: pointer; color: var(--ink2); font-size: 17px; }
+    :root {
+      --fs: 15px;
+      --ff: "Times New Roman", Times, Georgia, serif;
+      --bg: #f5f2ec;
+      --surface: #ffffff;
+      --surface2: #f9f7f3;
+      --border: #cec9be;
+      --border2: #e0dbd2;
+      --ink: #1a1714;
+      --ink2: #3d3830;
+      --ink3: #6b6156;
+      --ink4: #9c8f81;
+      --c-radar: #8b1a1a;
+      --c-rain: #1a4f8b;
+      --c-ref: #2d6a2d;
+      --accent: #8b1a1a;
+      --accent-lt: #fdf0f0;
+      --sidebar-w: 300px;
+      --hdr-h: 54px;
+    }
 
-/* ADMIN UI */
-.admin-only { display: none !important; }
-body.is-admin .admin-only { display: block !important; }
-body.is-admin .admin-only-flex { display: flex !important; }
-.cc-del, .iov .ibtn:nth-child(2), .iov .ibtn:nth-child(3) { display: none !important; }
-body.is-admin .cc-del, body.is-admin .iov .ibtn:nth-child(2), body.is-admin .iov .ibtn:nth-child(3) { display: block !important; }
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--ff);
+      font-size: var(--fs);
+    }
 
-/* LAYOUT */
-#shell { display: flex; height: 100vh; padding-top: var(--hdr-h); }
+    /* HEADER */
+    #hdr {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--hdr-h);
+      background: var(--surface);
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      z-index: 500;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, .10);
+    }
 
-/* SIDEBAR */
-#sidebar {
-  width: var(--sidebar-w); min-width: var(--sidebar-w);
-  background: var(--surface); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; overflow: hidden; z-index: 300;
-  transition: transform .25s ease;
-}
-.statsbar { display: flex; background: var(--accent); }
-.stat { flex: 1; padding: 7px 0; text-align: center; color: #fff; }
-.stat + .stat { border-left: 1px solid rgba(255,255,255,.25); }
-.stat-n { font-size: 20px; font-weight: bold; line-height: 1; }
-.stat-l { font-size: 9px; opacity: .85; margin-top: 1px; font-style: italic; }
-.fbar { display: flex; border-bottom: 1px solid var(--border2); background: var(--surface2); }
-.fb   { flex: 1; padding: 7px 3px; font-size: 11px; font-weight: bold; text-align: center; cursor: pointer; border: none; background: transparent; color: var(--ink3); font-family: var(--ff); border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
-.fb:hover { color: var(--ink2); }
-.fb.on { color: var(--accent); border-bottom-color: var(--accent); }
-#sb-srch { padding: 7px 10px; border-bottom: 1px solid var(--border2); background: var(--surface); }
-#sb-srch input { width: 100%; border: 1px solid var(--border); border-radius: 3px; padding: 6px 10px; font-size: 12px; color: var(--ink); font-family: var(--ff); background: var(--surface2); outline: none; transition: border-color .18s; }
-#sb-srch input:focus { border-color: var(--accent); }
-#sb-srch input::placeholder { color: var(--ink4); font-style: italic; }
-#slist { flex: 1; overflow-y: auto; }
-#slist::-webkit-scrollbar { width: 5px; }
-#slist::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.si { display: flex; align-items: center; gap: 9px; padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--border2); border-left: 4px solid transparent; transition: background .12s; }
-.si:hover { background: var(--surface2); }
-.si.on    { background: #fff8f0; border-left-color: var(--accent); }
-.si-ico   { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; border: 2px solid rgba(0,0,0,.12); }
-.si-info  { flex: 1; min-width: 0; }
-.si-name  { font-size: 11.5px; font-weight: bold; color: var(--ink); line-height: 1.25; }
-.si-sub   { font-size: 9.5px; color: var(--ink3); margin-top: 1px; font-style: italic; }
-.si-code  { font-size: 9px; padding: 2px 5px; border-radius: 2px; border: 1px solid var(--border); color: var(--ink3); background: var(--surface2); white-space: nowrap; font-family: "Courier New", monospace; }
+    #hdr-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-right: 1px solid var(--border);
+      padding-right: 12px;
+    }
 
-/* MAP */
-#map { flex: 1; height: 100%; z-index: 1; }
+    #hdr-title {
+      flex: 1;
+      min-width: 0;
+    }
 
-/* LAYER SWITCHER */
-#layer-sw { position: absolute; top: 10px; right: 10px; z-index: 400; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.15); min-width: 155px; }
-#lsw-hdr  { font-size: 9.5px; font-weight: bold; text-align: center; padding: 5px 10px; background: var(--accent); color: #fff; letter-spacing: .5px; text-transform: uppercase; font-style: italic; }
-.lyr { display: flex; align-items: center; gap: 7px; padding: 6px 10px; cursor: pointer; font-size: 11.5px; color: var(--ink2); border-bottom: 1px solid var(--border2); transition: background .12s; font-family: var(--ff); }
-.lyr:last-child { border-bottom: none; }
-.lyr:hover { background: var(--surface2); }
-.lyr input { accent-color: var(--accent); cursor: pointer; }
+    #hdr-title h1 {
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: .3px;
+      color: var(--ink);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-/* LEGEND */
-#legend { position: absolute; bottom: 28px; right: 10px; z-index: 400; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 9px 13px; box-shadow: 0 2px 8px rgba(0,0,0,.13); }
-.leg-ttl { font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; color: var(--ink3); margin-bottom: 7px; border-bottom: 1px solid var(--border2); padding-bottom: 4px; font-style: italic; }
-.leg-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink2); margin-bottom: 5px; }
-.leg-row:last-child { margin-bottom: 0; }
-.leg-pin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(0,0,0,.18); flex-shrink: 0; }
+    #hdr-title p {
+      font-size: 10px;
+      color: var(--ink3);
+      margin-top: 1px;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-/* LEAFLET POPUP */
-.leaflet-popup-content-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; color: var(--ink); box-shadow: 0 4px 16px rgba(0,0,0,.18); font-family: var(--ff); }
-.leaflet-popup-tip { background: var(--surface); }
-.leaflet-popup-content { margin: 12px 14px; }
-.pop-hdr  { border-left: 3px solid var(--accent); padding-left: 8px; margin-bottom: 8px; }
-.pop-name { font-size: 13px; font-weight: bold; line-height: 1.3; }
-.pop-type { font-size: 10px; color: var(--ink3); font-style: italic; margin-top: 2px; }
-.pop-tbl  { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 9px; }
-.pop-tbl td { padding: 2px 0; vertical-align: top; }
-.pop-tbl td:first-child { color: var(--ink3); font-style: italic; padding-right: 8px; white-space: nowrap; }
-.pop-tbl td:last-child  { font-family: "Courier New", monospace; font-size: 10.5px; color: var(--ink2); }
-.pop-btn { display: block; width: 100%; background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 2px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: var(--ff); text-align: center; transition: background .15s; letter-spacing: .3px; }
-.pop-btn:hover { background: #6e1414; }
+    .ts-ctrl {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
 
-/* MODAL */
-#ov { position: fixed; inset: 0; background: rgba(26,23,20,.45); z-index: 1000; display: none; align-items: flex-start; justify-content: flex-end; padding: 8px; }
-#ov.open { display: flex; }
-#modal {
-  width: 460px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
-  display: flex; flex-direction: column; overflow: hidden;
-  box-shadow: 0 8px 36px rgba(0,0,0,.22); animation: mIn .18s ease;
-  margin-top: calc(var(--hdr-h) + 6px);
-  max-height: calc(100vh - var(--hdr-h) - 18px);
-}
-@keyframes mIn { from { transform: translateX(14px); opacity: 0; } to { transform: none; opacity: 1; } }
-#mhdr { padding: 12px 16px; border-bottom: 2px solid var(--accent); display: flex; align-items: flex-start; gap: 9px; background: var(--surface2); }
-#mbadge { font-size: 9px; font-weight: bold; padding: 3px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: .5px; flex-shrink: 0; margin-top: 2px; border: 1px solid; }
-#mtitle { flex: 1; font-size: 14px; font-weight: bold; line-height: 1.25; }
-#msub   { font-size: 10px; color: var(--ink3); font-style: italic; margin-top: 2px; }
-#mclose { background: none; border: 1px solid var(--border); border-radius: 2px; color: var(--ink3); font-size: 17px; cursor: pointer; padding: 1px 7px; line-height: 1; transition: color .15s; flex-shrink: 0; }
-#mclose:hover { color: var(--accent); border-color: var(--accent); }
-.mtabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
-.mtab  { flex: 1; padding: 8px 3px; font-size: 10.5px; font-weight: bold; text-align: center; cursor: pointer; border: none; background: transparent; color: var(--ink3); font-family: var(--ff); border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; }
-.mtab:hover { color: var(--ink2); background: var(--surface2); }
-.mtab.on { color: var(--accent); border-bottom-color: var(--accent); background: #fff8f0; }
-#mbody { flex: 1; overflow-y: auto; padding: 14px 16px; }
-#mbody::-webkit-scrollbar { width: 5px; }
-#mbody::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.tp { display: none; }
-.tp.on { display: block; }
-.fg { margin-bottom: 12px; }
-.fl { display: block; font-size: 9.5px; font-weight: bold; color: var(--ink3); text-transform: uppercase; letter-spacing: .8px; font-style: italic; margin-bottom: 4px; }
-.fv { width: 100%; border: 1px solid var(--border); border-radius: 2px; padding: 7px 9px; font-size: 13px; color: var(--ink); font-family: var(--ff); background: var(--surface2); outline: none; transition: border-color .18s; }
-.fv:focus { border-color: var(--accent); background: #fff; }
-.fv[readonly] { background: var(--bg); color: var(--ink3); cursor: not-allowed; }
-textarea.fv { resize: vertical; min-height: 56px; line-height: 1.5; }
-.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.frow .fg { margin-bottom: 0; }
-.crd-box { background: #eef4ff; border: 1px solid #b0c8e8; border-radius: 2px; padding: 8px 11px; font-family: "Courier New", monospace; font-size: 12px; color: #1a3a6b; margin-bottom: 13px; letter-spacing: .5px; }
-.stl { font-size: 10.5px; font-weight: bold; font-style: italic; color: var(--ink3); text-transform: uppercase; letter-spacing: .8px; border-bottom: 1px solid var(--border2); padding-bottom: 5px; margin-bottom: 10px; }
-.cc { border: 1px solid var(--border); border-radius: 2px; padding: 9px 11px; margin-bottom: 7px; position: relative; background: var(--surface2); }
-.cc-role { font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; color: var(--ink4); margin-bottom: 2px; font-style: italic; }
-.cc-name { font-size: 13px; font-weight: bold; color: var(--ink); }
-.cc-ph   { font-family: "Courier New", monospace; font-size: 12px; color: var(--c-rain); margin-top: 3px; }
-.cc-del  { position: absolute; top: 8px; right: 9px; background: none; border: none; color: var(--ink4); cursor: pointer; font-size: 14px; transition: color .12s; }
-.cc-del:hover { color: var(--accent); }
-.cc.fixed { border-left: 3px solid var(--accent); }
-.ac-form { border: 1px dashed var(--border); border-radius: 2px; padding: 10px; margin-top: 8px; background: var(--surface2); }
-.addbtn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; padding: 7px; border: 1px dashed var(--border); border-radius: 2px; background: transparent; color: var(--ink3); font-size: 11px; cursor: pointer; font-family: var(--ff); margin-top: 6px; transition: color .15s, border-color .15s; }
-.addbtn:hover { color: var(--accent); border-color: var(--accent); }
-.upa { border: 2px dashed var(--border); border-radius: 3px; padding: 22px; text-align: center; cursor: pointer; transition: border-color .18s, background .18s; margin-bottom: 13px; }
-.upa:hover, .upa.dov { border-color: var(--accent); background: var(--accent-lt); }
-.upa-ico { font-size: 26px; margin-bottom: 6px; }
-.upa-t   { font-size: 12px; color: var(--ink2); font-style: italic; }
-.upa-h   { font-size: 10px; color: var(--ink4); margin-top: 2px; }
-.igrid   { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
-.ithumb  { aspect-ratio: 1; border-radius: 2px; overflow: hidden; position: relative; cursor: pointer; background: var(--bg); border: 1px solid var(--border); }
-.ithumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .2s; }
-.ithumb:hover img { transform: scale(1.06); }
-.iov { position: absolute; inset: 0; background: rgba(26,23,20,.6); display: flex; align-items: center; justify-content: center; gap: 5px; opacity: 0; transition: opacity .18s; }
-.ithumb:hover .iov { opacity: 1; }
-.ibtn { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.38); color: #fff; padding: 4px 7px; border-radius: 2px; font-size: 9px; cursor: pointer; font-family: var(--ff); }
-.ibtn:hover { background: rgba(255,255,255,.38); }
-.icap { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(26,23,20,.82)); color: #fff; font-size: 8.5px; padding: 14px 5px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
-.no-img { text-align: center; padding: 20px; color: var(--ink4); font-size: 12px; font-style: italic; }
-#mfoot { padding: 9px 16px; border-top: 1px solid var(--border2); display: flex; gap: 7px; justify-content: flex-end; background: var(--surface2); }
-.btn { padding: 7px 14px; border-radius: 2px; font-size: 12px; font-weight: bold; cursor: pointer; border: none; font-family: var(--ff); transition: all .15s; }
-.btn-p { background: var(--accent); color: #fff; }
-.btn-p:hover { background: #6e1414; }
-.btn-s { background: var(--surface); color: var(--ink3); border: 1px solid var(--border); }
-.btn-s:hover { color: var(--ink); }
-.btn-d { background: transparent; color: var(--accent); border: 1px solid #e0b0b0; }
-.btn-d:hover { background: var(--accent-lt); }
+    .ts-lbl {
+      font-size: 9px;
+      color: var(--ink4);
+      padding: 0 6px;
+      border-right: 1px solid var(--border);
+      line-height: 1;
+      font-style: italic;
+    }
 
-/* LIGHTBOX */
-#lb { position: fixed; inset: 0; background: rgba(10,8,6,.93); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-#lb.open { display: flex; }
-#lb img { max-width: 88vw; max-height: 78vh; object-fit: contain; border: 1px solid #555; }
-#lb-cap { color: rgba(255,255,255,.65); font-size: 11px; font-style: italic; }
-#lb-x   { position: absolute; top: 14px; right: 20px; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; }
-#lb-nav { display: flex; gap: 8px; }
+    .ts-btn {
+      background: var(--surface2);
+      border: none;
+      cursor: pointer;
+      padding: 5px 9px;
+      color: var(--ink2);
+      font-family: var(--ff);
+      line-height: 1;
+      transition: background .15s;
+    }
 
-/* TOAST */
-#toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%) translateY(50px); background: #1a5c2a; color: #fff; padding: 8px 20px; border-radius: 2px; font-size: 12px; font-weight: bold; z-index: 5000; transition: transform .25s; pointer-events: none; font-style: italic; }
-#toast.show { transform: translateX(-50%) translateY(0); }
+    .ts-btn:hover {
+      background: var(--bg);
+    }
 
-/* MOBILE */
-@media (max-width: 768px) {
-  :root { --sidebar-w: 100%; --hdr-h: 50px; --fs: 14px; }
-  #burger { display: block; }
-  #hdr-title h1 { font-size: 11px; }
-  #hdr-title p  { display: none; }
-  #shell { flex-direction: column; }
-  #sidebar { position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: 56vh; width: 100%; min-width: unset; border-right: none; border-top: 2px solid var(--accent); transform: translateY(100%); z-index: 400; }
-  #sidebar.mob-open { transform: translateY(0); }
-  #map { height: 100%; width: 100%; }
-  #modal { width: calc(100vw - 10px); margin-top: calc(var(--hdr-h) + 4px); max-height: calc(100vh - var(--hdr-h) - 12px); }
-  #ov { padding: 4px; }
-  .frow { grid-template-columns: 1fr; }
-  .igrid { grid-template-columns: repeat(2,1fr); }
-  #layer-sw { top: 8px; right: 8px; }
-  #legend { bottom: 24px; right: 8px; }
-  .ts-lbl { display: none; }
-  #hdr { gap: 8px; padding: 0 10px; }
-}
-</style>
+    .ts-btn.on {
+      background: var(--accent);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    #burger {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 5px 9px;
+      cursor: pointer;
+      color: var(--ink2);
+      font-size: 17px;
+    }
+
+    /* ADMIN UI */
+    .admin-only {
+      display: none !important;
+    }
+
+    body.is-admin .admin-only {
+      display: block !important;
+    }
+
+    body.is-admin .admin-only-flex {
+      display: flex !important;
+    }
+
+    .cc-del,
+    .iov .ibtn:nth-child(2),
+    .iov .ibtn:nth-child(3) {
+      display: none !important;
+    }
+
+    body.is-admin .cc-del,
+    body.is-admin .iov .ibtn:nth-child(2),
+    body.is-admin .iov .ibtn:nth-child(3) {
+      display: block !important;
+    }
+
+    /* LAYOUT */
+    #shell {
+      display: flex;
+      height: 100vh;
+      padding-top: var(--hdr-h);
+    }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 300;
+      transition: transform .25s ease;
+    }
+
+    .statsbar {
+      display: flex;
+      background: var(--accent);
+    }
+
+    .stat {
+      flex: 1;
+      padding: 7px 0;
+      text-align: center;
+      color: #fff;
+    }
+
+    .stat+.stat {
+      border-left: 1px solid rgba(255, 255, 255, .25);
+    }
+
+    .stat-n {
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .stat-l {
+      font-size: 9px;
+      opacity: .85;
+      margin-top: 1px;
+      font-style: italic;
+    }
+
+    .fbar {
+      display: flex;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface2);
+    }
+
+    .fb {
+      flex: 1;
+      padding: 7px 3px;
+      font-size: 11px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--ink3);
+      font-family: var(--ff);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color .15s, border-color .15s;
+    }
+
+    .fb:hover {
+      color: var(--ink2);
+    }
+
+    .fb.on {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    #sb-srch {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface);
+    }
+
+    #sb-srch input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--ink);
+      font-family: var(--ff);
+      background: var(--surface2);
+      outline: none;
+      transition: border-color .18s;
+    }
+
+    #sb-srch input:focus {
+      border-color: var(--accent);
+    }
+
+    #sb-srch input::placeholder {
+      color: var(--ink4);
+      font-style: italic;
+    }
+
+    #slist {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #slist::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #slist::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .si {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border2);
+      border-left: 4px solid transparent;
+      transition: background .12s;
+    }
+
+    .si:hover {
+      background: var(--surface2);
+    }
+
+    .si.on {
+      background: #fff8f0;
+      border-left-color: var(--accent);
+    }
+
+    .si-ico {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      border: 2px solid rgba(0, 0, 0, .12);
+    }
+
+    .si-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .si-name {
+      font-size: 11.5px;
+      font-weight: bold;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .si-sub {
+      font-size: 9.5px;
+      color: var(--ink3);
+      margin-top: 1px;
+      font-style: italic;
+    }
+
+    .si-code {
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      color: var(--ink3);
+      background: var(--surface2);
+      white-space: nowrap;
+      font-family: "Courier New", monospace;
+    }
+
+    /* MAP */
+    #map {
+      flex: 1;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* LAYER SWITCHER */
+    #layer-sw {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 400;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+      min-width: 155px;
+    }
+
+    #lsw-hdr {
+      font-size: 9.5px;
+      font-weight: bold;
+      text-align: center;
+      padding: 5px 10px;
+      background: var(--accent);
+      color: #fff;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      font-style: italic;
+    }
+
+    .lyr {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 11.5px;
+      color: var(--ink2);
+      border-bottom: 1px solid var(--border2);
+      transition: background .12s;
+      font-family: var(--ff);
+    }
+
+    .lyr:last-child {
+      border-bottom: none;
+    }
+
+    .lyr:hover {
+      background: var(--surface2);
+    }
+
+    .lyr input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* LEGEND */
+    #legend {
+      position: absolute;
+      bottom: 28px;
+      right: 10px;
+      z-index: 400;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 9px 13px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .13);
+    }
+
+    .leg-ttl {
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--ink3);
+      margin-bottom: 7px;
+      border-bottom: 1px solid var(--border2);
+      padding-bottom: 4px;
+      font-style: italic;
+    }
+
+    .leg-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--ink2);
+      margin-bottom: 5px;
+    }
+
+    .leg-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .leg-pin {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 0, 0, .18);
+      flex-shrink: 0;
+    }
+
+    /* LEAFLET POPUP */
+    .leaflet-popup-content-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--ink);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
+      font-family: var(--ff);
+    }
+
+    .leaflet-popup-tip {
+      background: var(--surface);
+    }
+
+    .leaflet-popup-content {
+      margin: 12px 14px;
+    }
+
+    .pop-hdr {
+      border-left: 3px solid var(--accent);
+      padding-left: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pop-name {
+      font-size: 13px;
+      font-weight: bold;
+      line-height: 1.3;
+    }
+
+    .pop-type {
+      font-size: 10px;
+      color: var(--ink3);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .pop-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-bottom: 9px;
+    }
+
+    .pop-tbl td {
+      padding: 2px 0;
+      vertical-align: top;
+    }
+
+    .pop-tbl td:first-child {
+      color: var(--ink3);
+      font-style: italic;
+      padding-right: 8px;
+      white-space: nowrap;
+    }
+
+    .pop-tbl td:last-child {
+      font-family: "Courier New", monospace;
+      font-size: 10.5px;
+      color: var(--ink2);
+    }
+
+    .pop-btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: var(--ff);
+      text-align: center;
+      transition: background .15s;
+      letter-spacing: .3px;
+    }
+
+    .pop-btn:hover {
+      background: #6e1414;
+    }
+
+    /* MODAL */
+    #ov {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 23, 20, .45);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 8px;
+    }
+
+    #ov.open {
+      display: flex;
+    }
+
+    #modal {
+      width: 460px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 36px rgba(0, 0, 0, .22);
+      animation: mIn .18s ease;
+      margin-top: calc(var(--hdr-h) + 6px);
+      max-height: calc(100vh - var(--hdr-h) - 18px);
+    }
+
+    @keyframes mIn {
+      from {
+        transform: translateX(14px);
+        opacity: 0;
+      }
+
+      to {
+        transform: none;
+        opacity: 1;
+      }
+    }
+
+    #mhdr {
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      background: var(--surface2);
+    }
+
+    #mbadge {
+      font-size: 9px;
+      font-weight: bold;
+      padding: 3px 7px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      border: 1px solid;
+    }
+
+    #mtitle {
+      flex: 1;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.25;
+    }
+
+    #msub {
+      font-size: 10px;
+      color: var(--ink3);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    #mclose {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--ink3);
+      font-size: 17px;
+      cursor: pointer;
+      padding: 1px 7px;
+      line-height: 1;
+      transition: color .15s;
+      flex-shrink: 0;
+    }
+
+    #mclose:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .mtabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .mtab {
+      flex: 1;
+      padding: 8px 3px;
+      font-size: 10.5px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--ink3);
+      font-family: var(--ff);
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+
+    .mtab:hover {
+      color: var(--ink2);
+      background: var(--surface2);
+    }
+
+    .mtab.on {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: #fff8f0;
+    }
+
+    #mbody {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+    }
+
+    #mbody::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #mbody::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .tp {
+      display: none;
+    }
+
+    .tp.on {
+      display: block;
+    }
+
+    .fg {
+      margin-bottom: 12px;
+    }
+
+    .fl {
+      display: block;
+      font-size: 9.5px;
+      font-weight: bold;
+      color: var(--ink3);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-style: italic;
+      margin-bottom: 4px;
+    }
+
+    .fv {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 7px 9px;
+      font-size: 13px;
+      color: var(--ink);
+      font-family: var(--ff);
+      background: var(--surface2);
+      outline: none;
+      transition: border-color .18s;
+    }
+
+    .fv:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    .fv[readonly] {
+      background: var(--bg);
+      color: var(--ink3);
+      cursor: not-allowed;
+    }
+
+    textarea.fv {
+      resize: vertical;
+      min-height: 56px;
+      line-height: 1.5;
+    }
+
+    .frow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .frow .fg {
+      margin-bottom: 0;
+    }
+
+    .crd-box {
+      background: #eef4ff;
+      border: 1px solid #b0c8e8;
+      border-radius: 2px;
+      padding: 8px 11px;
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      color: #1a3a6b;
+      margin-bottom: 13px;
+      letter-spacing: .5px;
+    }
+
+    .stl {
+      font-size: 10.5px;
+      font-weight: bold;
+      font-style: italic;
+      color: var(--ink3);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      border-bottom: 1px solid var(--border2);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+
+    .cc {
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 9px 11px;
+      margin-bottom: 7px;
+      position: relative;
+      background: var(--surface2);
+    }
+
+    .cc-role {
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--ink4);
+      margin-bottom: 2px;
+      font-style: italic;
+    }
+
+    .cc-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--ink);
+    }
+
+    .cc-ph {
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      color: var(--c-rain);
+      margin-top: 3px;
+    }
+
+    .cc-del {
+      position: absolute;
+      top: 8px;
+      right: 9px;
+      background: none;
+      border: none;
+      color: var(--ink4);
+      cursor: pointer;
+      font-size: 14px;
+      transition: color .12s;
+    }
+
+    .cc-del:hover {
+      color: var(--accent);
+    }
+
+    .cc.fixed {
+      border-left: 3px solid var(--accent);
+    }
+
+    .ac-form {
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      padding: 10px;
+      margin-top: 8px;
+      background: var(--surface2);
+    }
+
+    .addbtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      padding: 7px;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--ink3);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--ff);
+      margin-top: 6px;
+      transition: color .15s, border-color .15s;
+    }
+
+    .addbtn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .upa {
+      border: 2px dashed var(--border);
+      border-radius: 3px;
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      margin-bottom: 13px;
+    }
+
+    .upa:hover,
+    .upa.dov {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+    }
+
+    .upa-ico {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .upa-t {
+      font-size: 12px;
+      color: var(--ink2);
+      font-style: italic;
+    }
+
+    .upa-h {
+      font-size: 10px;
+      color: var(--ink4);
+      margin-top: 2px;
+    }
+
+    .igrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .ithumb {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .ithumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .2s;
+    }
+
+    .ithumb:hover img {
+      transform: scale(1.06);
+    }
+
+    .iov {
+      position: absolute;
+      inset: 0;
+      background: rgba(26, 23, 20, .6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity .18s;
+    }
+
+    .ithumb:hover .iov {
+      opacity: 1;
+    }
+
+    .ibtn {
+      background: rgba(255, 255, 255, .2);
+      border: 1px solid rgba(255, 255, 255, .38);
+      color: #fff;
+      padding: 4px 7px;
+      border-radius: 2px;
+      font-size: 9px;
+      cursor: pointer;
+      font-family: var(--ff);
+    }
+
+    .ibtn:hover {
+      background: rgba(255, 255, 255, .38);
+    }
+
+    .icap {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(26, 23, 20, .82));
+      color: #fff;
+      font-size: 8.5px;
+      padding: 14px 5px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+    }
+
+    .no-img {
+      text-align: center;
+      padding: 20px;
+      color: var(--ink4);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    #mfoot {
+      padding: 9px 16px;
+      border-top: 1px solid var(--border2);
+      display: flex;
+      gap: 7px;
+      justify-content: flex-end;
+      background: var(--surface2);
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      font-family: var(--ff);
+      transition: all .15s;
+    }
+
+    .btn-p {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-p:hover {
+      background: #6e1414;
+    }
+
+    .btn-s {
+      background: var(--surface);
+      color: var(--ink3);
+      border: 1px solid var(--border);
+    }
+
+    .btn-s:hover {
+      color: var(--ink);
+    }
+
+    .btn-d {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid #e0b0b0;
+    }
+
+    .btn-d:hover {
+      background: var(--accent-lt);
+    }
+
+    /* LIGHTBOX */
+    #lb {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 6, .93);
+      z-index: 3000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #lb.open {
+      display: flex;
+    }
+
+    #lb img {
+      max-width: 88vw;
+      max-height: 78vh;
+      object-fit: contain;
+      border: 1px solid #555;
+    }
+
+    #lb-cap {
+      color: rgba(255, 255, 255, .65);
+      font-size: 11px;
+      font-style: italic;
+    }
+
+    #lb-x {
+      position: absolute;
+      top: 14px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    #lb-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background: #1a5c2a;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 5000;
+      transition: transform .25s;
+      pointer-events: none;
+      font-style: italic;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-w: 100%;
+        --hdr-h: 50px;
+        --fs: 14px;
+      }
+
+      #burger {
+        display: block;
+      }
+
+      #hdr-title h1 {
+        font-size: 11px;
+      }
+
+      #hdr-title p {
+        display: none;
+      }
+
+      #shell {
+        flex-direction: column;
+      }
+
+      #sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        height: 56vh;
+        width: 100%;
+        min-width: unset;
+        border-right: none;
+        border-top: 2px solid var(--accent);
+        transform: translateY(100%);
+        z-index: 400;
+      }
+
+      #sidebar.mob-open {
+        transform: translateY(0);
+      }
+
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+
+      #modal {
+        width: calc(100vw - 10px);
+        margin-top: calc(var(--hdr-h) + 4px);
+        max-height: calc(100vh - var(--hdr-h) - 12px);
+      }
+
+      #ov {
+        padding: 4px;
+      }
+
+      .frow {
+        grid-template-columns: 1fr;
+      }
+
+      .igrid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      #layer-sw {
+        top: 8px;
+        right: 8px;
+      }
+
+      #legend {
+        bottom: 24px;
+        right: 8px;
+      }
+
+      .ts-lbl {
+        display: none;
+      }
+
+      #hdr {
+        gap: 8px;
+        padding: 0 10px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- HEADER -->
-<header id="hdr">
-  <button id="burger" onclick="toggleSidebar()" title="Toggle station list">☰</button>
-  <div id="hdr-logo">
-    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-      <circle cx="15" cy="15" r="14" stroke="#8b1a1a" stroke-width="1.5" fill="#fff8f0"/>
-      <path d="M5 20 Q10 12 15 16 Q20 20 25 12" stroke="#8b1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <path d="M14 7 L14 24 M15 7 L15 24 M16 7 L16 24" stroke="#1a4f8b" stroke-width=".6" opacity=".45"/>
-      <circle cx="15" cy="8" r="2.5" fill="#1a4f8b"/>
-    </svg>
-  </div>
-  <div id="hdr-title">
-    <h1>Panchganga Upper Reach River Basin — Hydro Monitoring Network, Kolhapur</h1>
-    <p>DST Research Project 2024–2027 · CCCSS, Kolhapur · Principal Investigator: Dr S.S. Panhalkar</p>
-  </div>
-  <div class="ts-ctrl" title="Adjust text size">
-    <span class="ts-lbl">Text</span>
-    <button class="ts-btn" onclick="setFS(13,this)">A−</button>
-    <button class="ts-btn on" onclick="setFS(15,this)">A</button>
-    <button class="ts-btn" onclick="setFS(18,this)">A+</button>
-  </div>
-  <button class="btn btn-s" id="admin-login-btn" onclick="openAdmin()" style="margin-left:8px;font-size:11px;padding:5px 9px;">🔑 Login</button>
-</header>
-
-<!-- SHELL -->
-<div id="shell">
-
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-    <div class="statsbar">
-      <div class="stat"><div class="stat-n">4</div><div class="stat-l">Radar RWL Stations</div></div>
-      <div class="stat"><div class="stat-n">5</div><div class="stat-l">Rain Gauge Stations</div></div>
-      <div class="stat"><div class="stat-n">1</div><div class="stat-l">Reference Points</div></div>
+  <!-- HEADER -->
+  <header id="hdr">
+    <button id="burger" onclick="toggleSidebar()" title="Toggle station list">☰</button>
+    <div id="hdr-logo">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="14" stroke="#8b1a1a" stroke-width="1.5" fill="#fff8f0" />
+        <path d="M5 20 Q10 12 15 16 Q20 20 25 12" stroke="#8b1a1a" stroke-width="2" fill="none"
+          stroke-linecap="round" />
+        <path d="M14 7 L14 24 M15 7 L15 24 M16 7 L16 24" stroke="#1a4f8b" stroke-width=".6" opacity=".45" />
+        <circle cx="15" cy="8" r="2.5" fill="#1a4f8b" />
+      </svg>
     </div>
-    <div class="fbar">
-      <button class="fb on" onclick="setFilter('all',this)">All (10)</button>
-      <button class="fb"    onclick="setFilter('radar',this)">📡 Radar</button>
-      <button class="fb"    onclick="setFilter('rain',this)">🌧 Rain</button>
-      <button class="fb"    onclick="setFilter('ref',this)">📊 Ref.</button>
+    <div id="hdr-title">
+      <h1>Panchganga Upper Reach River Basin — Hydro Monitoring Network, Kolhapur</h1>
+      <p>DST Research Project 2024–2027 · CCCSS, Kolhapur · Principal Investigator: Dr S.S. Panhalkar</p>
     </div>
-    <div id="sb-srch">
-      <input type="search" placeholder="Search station name, code or river…" oninput="doSearch(this.value)"/>
+    <div class="ts-ctrl" title="Adjust text size">
+      <span class="ts-lbl">Text</span>
+      <button class="ts-btn" onclick="setFS(13,this)">A−</button>
+      <button class="ts-btn on" onclick="setFS(15,this)">A</button>
+      <button class="ts-btn" onclick="setFS(18,this)">A+</button>
     </div>
-    <div id="slist"></div>
-  </div>
+    <button class="btn btn-s" id="admin-login-btn" onclick="openAdmin()"
+      style="margin-left:8px;font-size:11px;padding:5px 9px;">🔑 Login</button>
+  </header>
 
-  <!-- MAP -->
-  <div id="map"></div>
+  <!-- SHELL -->
+  <div id="shell">
 
-  <!-- LAYER SWITCHER -->
-  <div id="layer-sw">
-    <div id="lsw-hdr">Base Map</div>
-    <label class="lyr" id="lo0"><input type="radio" name="lyr" checked onchange="switchLayer(0)"/> ESRI Topographic</label>
-    <label class="lyr" id="lo1"><input type="radio" name="lyr" onchange="switchLayer(1)"/> ESRI Satellite</label>
-    <label class="lyr" id="lo2"><input type="radio" name="lyr" onchange="switchLayer(2)"/> ESRI Hybrid</label>
-    <label class="lyr" id="lo3"><input type="radio" name="lyr" onchange="switchLayer(3)"/> OpenStreetMap</label>
-    <label class="lyr" id="lo4"><input type="radio" name="lyr" onchange="switchLayer(4)"/> Google Hybrid</label>
-  </div>
-
-  <!-- LEGEND -->
-  <div id="legend">
-    <div class="leg-ttl">Station Types</div>
-    <div class="leg-row"><div class="leg-pin" style="background:#8b1a1a"></div>Radar Water Level</div>
-    <div class="leg-row"><div class="leg-pin" style="background:#1a4f8b"></div>Rain Gauge Station</div>
-    <div class="leg-row"><div class="leg-pin" style="background:#2d6a2d"></div>Reference Point</div>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div id="ov" onclick="if(event.target===this)closeModal()">
-<div id="modal">
-  <div id="mhdr">
-    <span id="mbadge"></span>
-    <div style="flex:1"><div id="mtitle"></div><div id="msub"></div></div>
-    <button id="mclose" onclick="closeModal()" title="Close record">✕</button>
-  </div>
-  <div class="mtabs">
-    <button class="mtab on" onclick="switchTab('info',this)">📍 Station Info</button>
-    <button class="mtab"    onclick="switchTab('contacts',this)">👥 Contacts</button>
-    <button class="mtab"    onclick="switchTab('install',this)">🔧 Installation</button>
-    <button class="mtab"    onclick="switchTab('images',this)">📸 Images</button>
-  </div>
-  <div id="mbody">
-
-    <!-- INFO -->
-    <div class="tp on" id="tp-info">
-      <div class="crd-box" id="inf-coord"></div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Station ID</label><input class="fv" id="f-id" readonly/></div>
-        <div class="fg"><label class="fl">Short Code</label><input class="fv" id="f-code"/></div>
-      </div>
-      <div class="fg"><label class="fl">Full Station Name</label><input class="fv" id="f-name"/></div>
-      <div class="fg"><label class="fl">Location / Address</label><textarea class="fv" id="f-loc" rows="2"></textarea></div>
-      <div class="frow">
-        <div class="fg"><label class="fl">River / Water Body</label><input class="fv" id="f-river"/></div>
-        <div class="fg"><label class="fl">Authority</label><input class="fv" id="f-auth"/></div>
-      </div>
-      <div class="fg"><label class="fl">Host Institution / Site Owner</label><input class="fv" id="f-host"/></div>
-      <div class="fg"><label class="fl">Remarks / Notes</label><textarea class="fv" id="f-notes" rows="3"></textarea></div>
-    </div>
-
-    <!-- CONTACTS -->
-    <div class="tp" id="tp-contacts">
-      <div class="stl">Site Contacts</div>
-      <div id="clist"></div>
-      <button class="addbtn admin-only" onclick="showAC()">＋ Add Site Contact</button>
-      <div class="ac-form" id="ac-form" style="display:none">
-        <div class="fg"><label class="fl">Role / Designation</label><input class="fv" id="nc-r" placeholder="e.g. Site Owner, Principal, Pump Operator"/></div>
-        <div class="fg"><label class="fl">Full Name</label><input class="fv" id="nc-n" placeholder="Full name"/></div>
-        <div class="fg"><label class="fl">Mobile Number</label><input class="fv" id="nc-p" placeholder="10-digit mobile number"/></div>
-        <div style="display:flex;gap:7px;margin-top:8px">
-          <button class="btn btn-p" onclick="addContact()">Add</button>
-          <button class="btn btn-s" onclick="hideAC()">Cancel</button>
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div class="statsbar">
+        <div class="stat">
+          <div class="stat-n">4</div>
+          <div class="stat-l">Radar RWL Stations</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">5</div>
+          <div class="stat-l">Rain Gauge Stations</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">1</div>
+          <div class="stat-l">Reference Points</div>
         </div>
       </div>
-      <div class="stl" style="margin-top:18px">Project Team (Fixed)</div>
-      <div class="cc fixed"><div class="cc-role">Project Investigator</div><div class="cc-name">Dr S.S. Panhalkar</div><div class="cc-ph">📞 9011774456</div></div>
-      <div class="cc fixed"><div class="cc-role">Co-Project Investigator</div><div class="cc-name">Dr G.S. Nhivekar</div><div class="cc-ph">📞 9970222316</div></div>
-      <div class="cc fixed"><div class="cc-role">Junior Research Fellow (2026–27)</div><div class="cc-name">Satwik K Udupi</div><div class="cc-ph">📞 9834300849</div></div>
-      <div class="cc fixed"><div class="cc-role">Junior Research Fellow (2024–26)</div><div class="cc-name">Nikhil D Pawar</div><div class="cc-ph">📞 7218489479</div></div>
+      <div class="fbar">
+        <button class="fb on" onclick="setFilter('all',this)">All (10)</button>
+        <button class="fb" onclick="setFilter('radar',this)">📡 Radar</button>
+        <button class="fb" onclick="setFilter('rain',this)">🌧 Rain</button>
+        <button class="fb" onclick="setFilter('ref',this)">📊 Ref.</button>
+      </div>
+      <div id="sb-srch">
+        <input type="search" placeholder="Search station name, code or river…" oninput="doSearch(this.value)" />
+      </div>
+      <div id="slist"></div>
     </div>
 
-    <!-- INSTALLATION -->
-    <div class="tp" id="tp-install">
-      <div class="stl">Key Dates</div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Fabrication Date</label><input type="date" class="fv" id="f-fab"/></div>
-        <div class="fg"><label class="fl">Installation Date</label><input type="date" class="fv" id="f-ins"/></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Commission Date</label><input type="date" class="fv" id="f-com"/></div>
-        <div class="fg"><label class="fl">Last Service Date</label><input type="date" class="fv" id="f-svc"/></div>
-      </div>
-      <div class="stl" style="margin-top:2px">Contractor</div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Name</label><input class="fv" id="f-con"/></div>
-        <div class="fg"><label class="fl">Phone</label><input class="fv" id="f-conph"/></div>
-      </div>
-      <div class="stl" style="margin-top:2px">Fabricator</div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Name</label><input class="fv" id="f-fabn"/></div>
-        <div class="fg"><label class="fl">Phone</label><input class="fv" id="f-fabph"/></div>
-      </div>
-      <div class="stl" style="margin-top:2px">Instrument Details</div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Type / Model</label><input class="fv" id="f-inst"/></div>
-        <div class="fg"><label class="fl">Serial Number</label><input class="fv" id="f-ser"/></div>
-      </div>
-      <div class="fg"><label class="fl">Installation Notes</label><textarea class="fv" id="f-inotes" rows="3"></textarea></div>
+    <!-- MAP -->
+    <div id="map"></div>
+
+    <!-- LAYER SWITCHER -->
+    <div id="layer-sw">
+      <div id="lsw-hdr">Base Map</div>
+      <label class="lyr" id="lo0"><input type="radio" name="lyr" checked onchange="switchLayer(0)" /> ESRI
+        Topographic</label>
+      <label class="lyr" id="lo1"><input type="radio" name="lyr" onchange="switchLayer(1)" /> ESRI Satellite</label>
+      <label class="lyr" id="lo2"><input type="radio" name="lyr" onchange="switchLayer(2)" /> ESRI Hybrid</label>
+      <label class="lyr" id="lo3"><input type="radio" name="lyr" onchange="switchLayer(3)" /> OpenStreetMap</label>
+      <label class="lyr" id="lo4"><input type="radio" name="lyr" onchange="switchLayer(4)" /> Google Hybrid</label>
     </div>
 
-    <!-- IMAGES -->
-    <div class="tp" id="tp-images">
-      <div class="upa admin-only" id="upa"
-           onclick="document.getElementById('fi').click()"
-           ondragover="dvOver(event)" ondragleave="dvLeave()" ondrop="dvDrop(event)">
-        <div class="upa-ico">📷</div>
-        <div class="upa-t">Click or drag &amp; drop to upload station photographs</div>
-        <div class="upa-h">Accepts JPG · PNG · WEBP · GIF &nbsp;|&nbsp; Stored locally in browser</div>
+    <!-- LEGEND -->
+    <div id="legend">
+      <div class="leg-ttl">Station Types</div>
+      <div class="leg-row">
+        <div class="leg-pin" style="background:#8b1a1a"></div>Radar Water Level
       </div>
-      <input type="file" id="fi" multiple accept="image/*" style="display:none" onchange="handleFiles(event)"/>
-      <div id="igrid" class="igrid"></div>
+      <div class="leg-row">
+        <div class="leg-pin" style="background:#1a4f8b"></div>Rain Gauge Station
+      </div>
+      <div class="leg-row">
+        <div class="leg-pin" style="background:#2d6a2d"></div>Reference Point
+      </div>
     </div>
   </div>
-  <div id="mfoot">
-    <button class="btn btn-d" onclick="exportJSON()">⬇ Export JSON</button>
-    <button class="btn btn-s" onclick="closeModal()">Close</button>
-    <button class="btn btn-p admin-only" onclick="saveStation()">💾 Save Changes</button>
-  </div>
-</div>
-</div>
 
-<!-- LIGHTBOX -->
-<div id="lb" onclick="if(event.target===this)closeLB()">
-  <button id="lb-x" onclick="closeLB()">✕</button>
-  <img id="lb-img" src="" alt=""/>
-  <div id="lb-cap"></div>
-  <div id="lb-nav">
-    <button class="btn btn-s" onclick="lbNav(-1)">◀ Previous</button>
-    <button class="btn btn-s" onclick="lbNav(1)">Next ▶</button>
-  </div>
-</div>
+  <!-- MODAL -->
+  <div id="ov" onclick="if(event.target===this)closeModal()">
+    <div id="modal">
+      <div id="mhdr">
+        <span id="mbadge"></span>
+        <div style="flex:1">
+          <div id="mtitle"></div>
+          <div id="msub"></div>
+        </div>
+        <button id="mclose" onclick="closeModal()" title="Close record">✕</button>
+      </div>
+      <div class="mtabs">
+        <button class="mtab on" onclick="switchTab('info',this)">📍 Station Info</button>
+        <button class="mtab" onclick="switchTab('contacts',this)">👥 Contacts</button>
+        <button class="mtab" onclick="switchTab('install',this)">🔧 Installation</button>
+        <button class="mtab" onclick="switchTab('images',this)">📸 Images</button>
+      </div>
+      <div id="mbody">
 
-<!-- TOAST -->
-<div id="toast"></div>
+        <!-- INFO -->
+        <div class="tp on" id="tp-info">
+          <div class="crd-box" id="inf-coord"></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Station ID</label><input class="fv" id="f-id" readonly /></div>
+            <div class="fg"><label class="fl">Short Code</label><input class="fv" id="f-code" /></div>
+          </div>
+          <div class="fg"><label class="fl">Full Station Name</label><input class="fv" id="f-name" /></div>
+          <div class="fg"><label class="fl">Location / Address</label><textarea class="fv" id="f-loc"
+              rows="2"></textarea></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">River / Water Body</label><input class="fv" id="f-river" /></div>
+            <div class="fg"><label class="fl">Authority</label><input class="fv" id="f-auth" /></div>
+          </div>
+          <div class="fg"><label class="fl">Host Institution / Site Owner</label><input class="fv" id="f-host" /></div>
+          <div class="fg"><label class="fl">Remarks / Notes</label><textarea class="fv" id="f-notes"
+              rows="3"></textarea></div>
+        </div>
 
-<!-- ADMIN MODAL -->
-<div id="admin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);padding:20px;border-radius:4px;width:320px;border:1px solid var(--border);">
-    <h3 style="margin-bottom:10px;font-family:var(--ff);font-size:14px;">Admin Login</h3>
-    <p id="admin-status" style="font-size:11px;color:var(--ink3);margin-bottom:10px;">Enter your GitHub Personal Access Token to unlock editing and uploads.</p>
-    <input type="password" id="gh-token" placeholder="ghp_..." style="width:100%;padding:8px;margin-bottom:15px;border:1px solid var(--border);border-radius:3px;"/>
-    <div style="display:flex;justify-content:flex-end;gap:8px;">
-      <button class="btn btn-s" onclick="document.getElementById('admin-modal').style.display='none'">Close</button>
-      <button class="btn btn-d admin-only-flex" onclick="logout()" style="background:#8b1a1a;color:#fff;border:none">Logout</button>
-      <button class="btn btn-p" id="login-save-btn" onclick="saveAdminToken()">Login</button>
+        <!-- CONTACTS -->
+        <div class="tp" id="tp-contacts">
+          <div class="stl">Site Contacts</div>
+          <div id="clist"></div>
+          <button class="addbtn admin-only" onclick="showAC()">＋ Add Site Contact</button>
+          <div class="ac-form" id="ac-form" style="display:none">
+            <div class="fg"><label class="fl">Role / Designation</label><input class="fv" id="nc-r"
+                placeholder="e.g. Site Owner, Principal, Pump Operator" /></div>
+            <div class="fg"><label class="fl">Full Name</label><input class="fv" id="nc-n" placeholder="Full name" />
+            </div>
+            <div class="fg"><label class="fl">Mobile Number</label><input class="fv" id="nc-p"
+                placeholder="10-digit mobile number" /></div>
+            <div style="display:flex;gap:7px;margin-top:8px">
+              <button class="btn btn-p" onclick="addContact()">Add</button>
+              <button class="btn btn-s" onclick="hideAC()">Cancel</button>
+            </div>
+          </div>
+          <div class="stl" style="margin-top:18px">Project Team (Fixed)</div>
+          <div class="cc fixed">
+            <div class="cc-role">Project Investigator</div>
+            <div class="cc-name">Dr S.S. Panhalkar</div>
+            <div class="cc-ph">📞 9011774456</div>
+          </div>
+          <div class="cc fixed">
+            <div class="cc-role">Co-Project Investigator</div>
+            <div class="cc-name">Dr G.S. Nhivekar</div>
+            <div class="cc-ph">📞 9970222316</div>
+          </div>
+          <div class="cc fixed">
+            <div class="cc-role">Junior Research Fellow (2026–27)</div>
+            <div class="cc-name">Satwik K Udupi</div>
+            <div class="cc-ph">📞 9834300849</div>
+          </div>
+          <div class="cc fixed">
+            <div class="cc-role">Junior Research Fellow (2024–26)</div>
+            <div class="cc-name">Nikhil D Pawar</div>
+            <div class="cc-ph">📞 7218489479</div>
+          </div>
+        </div>
+
+        <!-- INSTALLATION -->
+        <div class="tp" id="tp-install">
+          <div class="stl">Key Dates</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Fabrication Date</label><input type="date" class="fv" id="f-fab" /></div>
+            <div class="fg"><label class="fl">Installation Date</label><input type="date" class="fv" id="f-ins" /></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Commission Date</label><input type="date" class="fv" id="f-com" /></div>
+            <div class="fg"><label class="fl">Last Service Date</label><input type="date" class="fv" id="f-svc" /></div>
+          </div>
+          <div class="stl" style="margin-top:2px">Contractor</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Name</label><input class="fv" id="f-con" /></div>
+            <div class="fg"><label class="fl">Phone</label><input class="fv" id="f-conph" /></div>
+          </div>
+          <div class="stl" style="margin-top:2px">Fabricator</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Name</label><input class="fv" id="f-fabn" /></div>
+            <div class="fg"><label class="fl">Phone</label><input class="fv" id="f-fabph" /></div>
+          </div>
+          <div class="stl" style="margin-top:2px">Instrument Details</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Type / Model</label><input class="fv" id="f-inst" /></div>
+            <div class="fg"><label class="fl">Serial Number</label><input class="fv" id="f-ser" /></div>
+          </div>
+          <div class="fg"><label class="fl">Installation Notes</label><textarea class="fv" id="f-inotes"
+              rows="3"></textarea></div>
+        </div>
+
+        <!-- IMAGES -->
+        <div class="tp" id="tp-images">
+          <div class="upa admin-only" id="upa" onclick="document.getElementById('fi').click()"
+            ondragover="dvOver(event)" ondragleave="dvLeave()" ondrop="dvDrop(event)">
+            <div class="upa-ico">📷</div>
+            <div class="upa-t">Click or drag &amp; drop to upload station photographs</div>
+            <div class="upa-h">Accepts JPG · PNG · WEBP · GIF &nbsp;|&nbsp; Stored locally in browser</div>
+          </div>
+          <input type="file" id="fi" multiple accept="image/*" style="display:none" onchange="handleFiles(event)" />
+          <div id="igrid" class="igrid"></div>
+        </div>
+      </div>
+      <div id="mfoot">
+        <button class="btn btn-d" onclick="exportJSON()">⬇ Export JSON</button>
+        <button class="btn btn-s" onclick="closeModal()">Close</button>
+        <button class="btn btn-p admin-only" onclick="saveStation()">💾 Save Changes</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-const DEFAULTS = [
-  { id:"RWL-01", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 1", name:"Nitawade Kasari River Bridge", shortCode:"NITAWADE", lat:16.744708, lng:74.141653, river:"Kasari River", auth:"WRD", location:"Nitawade Jackwell, Tributary River Kasari, near Yevluj village, Kolhapur District", host:"Grampanchayat Yevluj (Site Owner)", notes:"Jackwell site owned by Grampanchayat Yevluj. Radar sensor installed to monitor Kasari River water level.", contacts:[{role:"Grampanchayat Clerk",name:"Santosh Patil",phone:"8928411919"},{role:"Pump Operator",name:"Hanmant Patil",phone:"9049720493"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-02", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 2", name:"Jayanti Nala — Wilson Bridge", shortCode:"JAY-NALA", lat:16.700447, lng:74.231292, river:"Jayanti Nala", auth:"KMC", location:"Wilson Bridge, Jayanti Nala. Building terrace of Anandrao Jadhav Rolling Shutters, Kolhapur", host:"Private — Anandrao Jadhav (Rolling Shutters)", notes:"Radar sensor mounted on private terrace overlooking Wilson Bridge over Jayanti Nala.", contacts:[{role:"Site Owner",name:"Amit Jadhav",phone:"9850150382"},{role:"Site Contact",name:"Abhijit Jadhav",phone:"9673594534"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-03", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 3", name:"Ichalkaranji Bridge (New Bridge)", shortCode:"ICHAL-RWL", lat:16.665844, lng:74.475964, river:"Panchganga River", auth:"WRD", location:"New Bridge, Ichalkaranji, Hupari–Ichalkaranji Road, Kolhapur District", host:"NHAI (National Highways Authority of India)", notes:"RWL sensor on new Ichalkaranji bridge, Hupari–Ichalkaranji Road. Site permission from NHAI.", contacts:[], con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-04", type:"radar", typeName:"Radar Water Level", siteNum:"Site No. 4", name:"Chhatrapati Shivaji Maharaj Bridge", shortCode:"SHIVAJI-BR", lat:16.707175, lng:74.217525, river:"Panchganga River", auth:"KMC", location:"Shivaji Bridge, Kolhapur — National Highway NH-166, Wadnage", host:"NHAI (National Highways Authority of India)", notes:"RWL sensor on CSM Bridge (Shivaji Bridge), NH-166. Site permission from NHAI.", contacts:[], con:"Ravi Patil", conPh:"9766448723", fabn:"—", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Radar Water Level Sensor", ser:"", inotes:"", images:[] },
-  { id:"RWL-05", type:"ref", typeName:"RWL Reference Point", siteNum:"Reference", name:"Balinge Bhogawati River Bridge", shortCode:"BALINGE", lat:16.691667, lng:74.165422, river:"Bhogawati River", auth:"WRD", location:"Balinge village, Bhogawati River Bridge, Kolhapur District", host:"—", notes:"Reference water-level monitoring point only. No radar instrument installed at this location.", contacts:[], con:"", conPh:"", fabn:"", fabPh:"", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"", ser:"", inotes:"", images:[] },
-  { id:"RG-01", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 01", name:"CCCSS Master Control", shortCode:"CCCSS SU", lat:16.68115, lng:74.25431, river:"—", auth:"CCCSS", location:"CCCSS Campus, Kolhapur — Central Master Control Unit", host:"Centre for Citizen and Consumer Studies, Kolhapur", notes:"Master control and data hub for the entire rain gauge telemetry network.", contacts:[], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-02", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 02", name:"Rukadi Station", shortCode:"RUKADI", lat:16.72827, lng:74.35814, river:"—", auth:"—", location:"Rukadi Village, Kolhapur District", host:"Mahatma Gandhi Jr. College & Madhymik Vidyalay, Rukadi", notes:"Rain gauge installed at school premises in Rukadi village.", contacts:[{role:"Vice Principal",name:"Jayram Patil",phone:"9730310910"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-03", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 03", name:"Pattan Kodoli", shortCode:"PATTAN", lat:16.650493, lng:74.365707, river:"—", auth:"—", location:"Pattan Kodoli Village, Kolhapur District", host:"Bapuso Hupare High School, Pattan Kodoli", notes:"Rain gauge installed at Bapuso Hupare High School premises.", contacts:[{role:"Principal",name:"D.G. Nejkar",phone:"9422027493"},{role:"Vice Principal",name:"S.Y. Kanagale",phone:"7972506582"},{role:"Office Boy",name:"—",phone:"8552990646"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-04", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 04", name:"Ichalkaranji", shortCode:"ICHAL", lat:16.691702, lng:74.451817, river:"—", auth:"—", location:"Ichalkaranji Town, Kolhapur District", host:"Dattajirao Kadam Jr. College of Arts, Science & Commerce, Ichalkaranji", notes:"Rain gauge installed at Dattajirao Kadam Jr. College campus.", contacts:[{role:"Geography HOD",name:"Sunil Bhosle",phone:"8605629063"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] },
-  { id:"RG-05", type:"rain", typeName:"Rain Gauge Station", siteNum:"ID No. 05", name:"Nigave Dhumala", shortCode:"NIGAVE", lat:16.745585, lng:74.208378, river:"—", auth:"—", location:"Nigave Dhumala Village, Kolhapur District", host:"Shri Jyotibling High School & Dynanmandir, Nigave Dhumala", notes:"Rain gauge installed at Shri Jyotibling High School premises.", contacts:[{role:"Principal",name:"—",phone:"9421215982"}], con:"Amit Singh", conPh:"9890850367", fabn:"Rohit Salokhe", fabPh:"9595909995", fabDate:"", insDate:"", comDate:"", svcDate:"", inst:"Tipping Bucket Rain Gauge (Telemetry)", ser:"", inotes:"", images:[] }
-];
+  <!-- LIGHTBOX -->
+  <div id="lb" onclick="if(event.target===this)closeLB()">
+    <button id="lb-x" onclick="closeLB()">✕</button>
+    <img id="lb-img" src="" alt="" />
+    <div id="lb-cap"></div>
+    <div id="lb-nav">
+      <button class="btn btn-s" onclick="lbNav(-1)">◀ Previous</button>
+      <button class="btn btn-s" onclick="lbNav(1)">Next ▶</button>
+    </div>
+  </div>
 
-let stations=[], curId=null, curFilter='all', curQ='', lbIdx=0;
-let map, markers={}, layers=[], curLayer=0;
-const GH_OWNER = 'satwikcccss-crypto';
-const GH_REPO = 'CCCSS-SUK-Instruments-Log';
-let dataSha = null;
+  <!-- TOAST -->
+  <div id="toast"></div>
 
-async function loadData() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const key = urlParams.get('key');
-  if (key && key.startsWith('gh')) {
-    localStorage.setItem('gh_token', key);
-    window.history.replaceState({}, document.title, window.location.pathname);
-    toast('Logged in via link.');
-  }
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data.json?t=${Date.now()}`);
-    if (res.ok) {
-      const json = await res.json();
-      dataSha = json.sha;
-      const content = decodeURIComponent(escape(atob(json.content)));
-      stations = JSON.parse(content);
-    } else {
-      const fallback = await fetch('data.json?t=' + Date.now());
-      stations = await fallback.json();
+  <!-- ADMIN MODAL -->
+  <div id="admin-modal"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);padding:20px;border-radius:4px;width:320px;border:1px solid var(--border);">
+      <h3 style="margin-bottom:10px;font-family:var(--ff);font-size:14px;">Admin Login</h3>
+      <p id="admin-status" style="font-size:11px;color:var(--ink3);margin-bottom:10px;">Enter your GitHub Personal
+        Access Token to unlock editing and uploads.</p>
+      <input type="password" id="gh-token" placeholder="ghp_..."
+        style="width:100%;padding:8px;margin-bottom:15px;border:1px solid var(--border);border-radius:3px;" />
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-s" onclick="document.getElementById('admin-modal').style.display='none'">Close</button>
+        <button class="btn btn-d admin-only-flex" onclick="logout()"
+          style="background:#8b1a1a;color:#fff;border:none">Logout</button>
+        <button class="btn btn-p" id="login-save-btn" onclick="saveAdminToken()">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULTS = [
+      { id: "RWL-01", type: "radar", typeName: "Radar Water Level", siteNum: "Site No. 1", name: "Nitawade Kasari River Bridge", shortCode: "NITAWADE", lat: 16.744708, lng: 74.141653, river: "Kasari River", auth: "WRD", location: "Nitawade Jackwell, Tributary River Kasari, near Yevluj village, Kolhapur District", host: "Grampanchayat Yevluj (Site Owner)", notes: "Jackwell site owned by Grampanchayat Yevluj. Radar sensor installed to monitor Kasari River water level.", contacts: [{ role: "Grampanchayat Clerk", name: "Santosh Patil", phone: "8928411919" }, { role: "Pump Operator", name: "Hanmant Patil", phone: "9049720493" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Radar Water Level Sensor", ser: "", inotes: "", images: [] },
+      { id: "RWL-02", type: "radar", typeName: "Radar Water Level", siteNum: "Site No. 2", name: "Jayanti Nala — Wilson Bridge", shortCode: "JAY-NALA", lat: 16.700447, lng: 74.231292, river: "Jayanti Nala", auth: "KMC", location: "Wilson Bridge, Jayanti Nala. Building terrace of Anandrao Jadhav Rolling Shutters, Kolhapur", host: "Private — Anandrao Jadhav (Rolling Shutters)", notes: "Radar sensor mounted on private terrace overlooking Wilson Bridge over Jayanti Nala.", contacts: [{ role: "Site Owner", name: "Amit Jadhav", phone: "9850150382" }, { role: "Site Contact", name: "Abhijit Jadhav", phone: "9673594534" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Radar Water Level Sensor", ser: "", inotes: "", images: [] },
+      { id: "RWL-03", type: "radar", typeName: "Radar Water Level", siteNum: "Site No. 3", name: "Ichalkaranji Bridge (New Bridge)", shortCode: "ICHAL-RWL", lat: 16.665844, lng: 74.475964, river: "Panchganga River", auth: "WRD", location: "New Bridge, Ichalkaranji, Hupari–Ichalkaranji Road, Kolhapur District", host: "NHAI (National Highways Authority of India)", notes: "RWL sensor on new Ichalkaranji bridge, Hupari–Ichalkaranji Road. Site permission from NHAI.", contacts: [], con: "Ravi Patil", conPh: "9766448723", fabn: "—", fabPh: "", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Radar Water Level Sensor", ser: "", inotes: "", images: [] },
+      { id: "RWL-04", type: "radar", typeName: "Radar Water Level", siteNum: "Site No. 4", name: "Chhatrapati Shivaji Maharaj Bridge", shortCode: "SHIVAJI-BR", lat: 16.707175, lng: 74.217525, river: "Panchganga River", auth: "KMC", location: "Shivaji Bridge, Kolhapur — National Highway NH-166, Wadnage", host: "NHAI (National Highways Authority of India)", notes: "RWL sensor on CSM Bridge (Shivaji Bridge), NH-166. Site permission from NHAI.", contacts: [], con: "Ravi Patil", conPh: "9766448723", fabn: "—", fabPh: "", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Radar Water Level Sensor", ser: "", inotes: "", images: [] },
+      { id: "RWL-05", type: "ref", typeName: "RWL Reference Point", siteNum: "Reference", name: "Balinge Bhogawati River Bridge", shortCode: "BALINGE", lat: 16.691667, lng: 74.165422, river: "Bhogawati River", auth: "WRD", location: "Balinge village, Bhogawati River Bridge, Kolhapur District", host: "—", notes: "Reference water-level monitoring point only. No radar instrument installed at this location.", contacts: [], con: "", conPh: "", fabn: "", fabPh: "", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "", ser: "", inotes: "", images: [] },
+      { id: "RG-01", type: "rain", typeName: "Rain Gauge Station", siteNum: "ID No. 01", name: "CCCSS Master Control", shortCode: "CCCSS SU", lat: 16.68115, lng: 74.25431, river: "—", auth: "CCCSS", location: "CCCSS Campus, Kolhapur — Central Master Control Unit", host: "Centre for Citizen and Consumer Studies, Kolhapur", notes: "Master control and data hub for the entire rain gauge telemetry network.", contacts: [], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Tipping Bucket Rain Gauge (Telemetry)", ser: "", inotes: "", images: [] },
+      { id: "RG-02", type: "rain", typeName: "Rain Gauge Station", siteNum: "ID No. 02", name: "Rukadi Station", shortCode: "RUKADI", lat: 16.72827, lng: 74.35814, river: "—", auth: "—", location: "Rukadi Village, Kolhapur District", host: "Mahatma Gandhi Jr. College & Madhymik Vidyalay, Rukadi", notes: "Rain gauge installed at school premises in Rukadi village.", contacts: [{ role: "Vice Principal", name: "Jayram Patil", phone: "9730310910" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Tipping Bucket Rain Gauge (Telemetry)", ser: "", inotes: "", images: [] },
+      { id: "RG-03", type: "rain", typeName: "Rain Gauge Station", siteNum: "ID No. 03", name: "Pattan Kodoli", shortCode: "PATTAN", lat: 16.650493, lng: 74.365707, river: "—", auth: "—", location: "Pattan Kodoli Village, Kolhapur District", host: "Bapuso Hupare High School, Pattan Kodoli", notes: "Rain gauge installed at Bapuso Hupare High School premises.", contacts: [{ role: "Principal", name: "D.G. Nejkar", phone: "9422027493" }, { role: "Vice Principal", name: "S.Y. Kanagale", phone: "7972506582" }, { role: "Office Boy", name: "—", phone: "8552990646" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Tipping Bucket Rain Gauge (Telemetry)", ser: "", inotes: "", images: [] },
+      { id: "RG-04", type: "rain", typeName: "Rain Gauge Station", siteNum: "ID No. 04", name: "Ichalkaranji", shortCode: "ICHAL", lat: 16.691702, lng: 74.451817, river: "—", auth: "—", location: "Ichalkaranji Town, Kolhapur District", host: "Dattajirao Kadam Jr. College of Arts, Science & Commerce, Ichalkaranji", notes: "Rain gauge installed at Dattajirao Kadam Jr. College campus.", contacts: [{ role: "Geography HOD", name: "Sunil Bhosle", phone: "8605629063" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Tipping Bucket Rain Gauge (Telemetry)", ser: "", inotes: "", images: [] },
+      { id: "RG-05", type: "rain", typeName: "Rain Gauge Station", siteNum: "ID No. 05", name: "Nigave Dhumala", shortCode: "NIGAVE", lat: 16.745585, lng: 74.208378, river: "—", auth: "—", location: "Nigave Dhumala Village, Kolhapur District", host: "Shri Jyotibling High School & Dynanmandir, Nigave Dhumala", notes: "Rain gauge installed at Shri Jyotibling High School premises.", contacts: [{ role: "Principal", name: "—", phone: "9421215982" }], con: "Amit Singh", conPh: "9890850367", fabn: "Rohit Salokhe", fabPh: "9595909995", fabDate: "", insDate: "", comDate: "", svcDate: "", inst: "Tipping Bucket Rain Gauge (Telemetry)", ser: "", inotes: "", images: [] }
+    ];
+
+    let stations = [], curId = null, curFilter = 'all', curQ = '', lbIdx = 0;
+    let map, markers = {}, layers = [], curLayer = 0;
+    const GH_OWNER = 'satwikcccss-crypto';
+    const GH_REPO = 'CCCSS-SUK-Instruments-Log';
+    let dataSha = null;
+
+    async function loadData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const key = urlParams.get('key');
+      if (key && key.startsWith('gh')) {
+        localStorage.setItem('gh_token', key);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        toast('Logged in via link.');
+      }
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data.json?t=${Date.now()}`);
+        if (res.ok) {
+          const json = await res.json();
+          dataSha = json.sha;
+          const content = decodeURIComponent(escape(atob(json.content)));
+          stations = JSON.parse(content);
+        } else {
+          const fallback = await fetch('data.json?t=' + Date.now());
+          stations = await fallback.json();
+        }
+      } catch (e) {
+        console.warn("Failed to load data.json (CORS/file protocol issue). Using DEFAULTS.");
+        stations = JSON.parse(JSON.stringify(DEFAULTS));
+      }
+      updateAdminUI();
+      initMap();
+      renderSidebar();
     }
-  } catch (e) {
-    console.warn("Failed to load data.json (CORS/file protocol issue). Using DEFAULTS.");
-    stations = JSON.parse(JSON.stringify(DEFAULTS));
-  }
-  updateAdminUI();
-  initMap(); 
-  renderSidebar();
-}
 
-function updateAdminUI() {
-  const token = localStorage.getItem('gh_token');
-  if (token) {
-    document.body.classList.add('is-admin');
-    document.getElementById('admin-login-btn').textContent = '✅ Logged In';
-    document.getElementById('admin-status').textContent = 'You are logged in as Admin. You can now edit records and upload photos.';
-    document.getElementById('login-save-btn').textContent = 'Update Token';
-  } else {
-    document.body.classList.remove('is-admin');
-    document.getElementById('admin-login-btn').textContent = '🔑 Login';
-    document.getElementById('admin-status').textContent = 'Enter your GitHub Personal Access Token to unlock editing and uploads.';
-    document.getElementById('login-save-btn').textContent = 'Login';
-  }
-}
+    function updateAdminUI() {
+      const token = localStorage.getItem('gh_token');
+      if (token) {
+        document.body.classList.add('is-admin');
+        document.getElementById('admin-login-btn').textContent = '✅ Logged In';
+        document.getElementById('admin-status').textContent = 'You are logged in as Admin. You can now edit records and upload photos.';
+        document.getElementById('login-save-btn').textContent = 'Update Token';
+      } else {
+        document.body.classList.remove('is-admin');
+        document.getElementById('admin-login-btn').textContent = '🔑 Login';
+        document.getElementById('admin-status').textContent = 'Enter your GitHub Personal Access Token to unlock editing and uploads.';
+        document.getElementById('login-save-btn').textContent = 'Login';
+      }
+    }
 
-function saveAdminToken() {
-  const t = document.getElementById('gh-token').value.trim();
-  if (t) {
-    localStorage.setItem('gh_token', t);
-    toast('Logged in successfully.');
-  } else {
-    localStorage.removeItem('gh_token');
-  }
-  updateAdminUI();
-  document.getElementById('admin-modal').style.display='none';
-}
+    function saveAdminToken() {
+      const t = document.getElementById('gh-token').value.trim();
+      if (t) {
+        localStorage.setItem('gh_token', t);
+        toast('Logged in successfully.');
+      } else {
+        localStorage.removeItem('gh_token');
+      }
+      updateAdminUI();
+      document.getElementById('admin-modal').style.display = 'none';
+    }
 
-function logout() {
-  if(!confirm('Logout and remove Admin access from this browser?')) return;
-  localStorage.removeItem('gh_token');
-  updateAdminUI();
-  document.getElementById('admin-modal').style.display='none';
-  toast('Logged out.');
-}
-function openAdmin() {
-  document.getElementById('gh-token').value = ''; 
-  document.getElementById('admin-modal').style.display='flex';
-}
+    function logout() {
+      if (!confirm('Logout and remove Admin access from this browser?')) return;
+      localStorage.removeItem('gh_token');
+      updateAdminUI();
+      document.getElementById('admin-modal').style.display = 'none';
+      toast('Logged out.');
+    }
+    function openAdmin() {
+      document.getElementById('gh-token').value = '';
+      document.getElementById('admin-modal').style.display = 'flex';
+    }
 
-async function uploadToGitHub(path, content, message, isBase64 = false) {
-  const token = localStorage.getItem('gh_token');
-  if (!token) throw new Error('No Admin Token set. Click 🔑 Admin to add it.');
+    async function uploadToGitHub(path, content, message, isBase64 = false) {
+      const token = localStorage.getItem('gh_token');
+      if (!token) throw new Error('No Admin Token set. Click 🔑 Admin to add it.');
 
-  const body = { message, content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))) };
-  if (path === 'data.json' && dataSha) body.sha = dataSha;
+      const body = { message, content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))) };
+      if (path === 'data.json' && dataSha) body.sha = dataSha;
 
-  const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
-    method: 'PUT',
-    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+      const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || 'GitHub API error');
-  }
-  const resData = await res.json();
-  if (path === 'data.json') dataSha = resData.content.sha;
-  return resData.content;
-}
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`${res.status}: ${err.message || 'GitHub API error'}`);
+      }
+      const resData = await res.json();
+      if (path === 'data.json') dataSha = resData.content.sha;
+      return resData.content;
+    }
 
-async function save() {
-  toast('Saving to GitHub...');
-  try {
-    await uploadToGitHub('data.json', JSON.stringify(stations, null, 2), 'Update station data');
-    toast('Data saved successfully to GitHub!');
-  } catch(e) {
-    alert('Save failed: ' + e.message);
-  }
-}
+    async function save() {
+      toast('Saving to GitHub...');
+      try {
+        await uploadToGitHub('data.json', JSON.stringify(stations, null, 2), 'Update station data');
+        toast('Data saved successfully to GitHub!');
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+      }
+    }
 
-function getS(id){ return stations.find(s=>s.id===id); }
-function setS(id,p){ const i=stations.findIndex(s=>s.id===id); if(i>=0){stations[i]={...stations[i],...p};save();} }
+    function getS(id) { return stations.find(s => s.id === id); }
+    function setS(id, p) { const i = stations.findIndex(s => s.id === id); if (i >= 0) { stations[i] = { ...stations[i], ...p }; save(); } }
 
-const COL={radar:'#8b1a1a',rain:'#1a4f8b',ref:'#2d6a2d'};
-const EMO={radar:'📡',rain:'🌧',ref:'📊'};
+    const COL = { radar: '#8b1a1a', rain: '#1a4f8b', ref: '#2d6a2d' };
+    const EMO = { radar: '📡', rain: '🌧', ref: '📊' };
 
-function mkIcon(type){
-  const c=COL[type]||'#555', e=EMO[type]||'•';
-  return L.divIcon({
-    html:`<div style="width:30px;height:30px;background:${c};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:12px;line-height:1">${e}</span></div>`,
-    className:'', iconSize:[30,30], iconAnchor:[15,30], popupAnchor:[0,-32]
-  });
-}
+    function mkIcon(type) {
+      const c = COL[type] || '#555', e = EMO[type] || '•';
+      return L.divIcon({
+        html: `<div style="width:30px;height:30px;background:${c};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:12px;line-height:1">${e}</span></div>`,
+        className: '', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -32]
+      });
+    }
 
-function initMap(){
-  map=L.map('map',{center:[16.705,74.295],zoom:11});
-  layers=[
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri, USGS',maxZoom:19}),
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri World Imagery',maxZoom:19}),
-    L.layerGroup([
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19}),
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,opacity:.9})
-    ]),
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}),
-    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{attribution:'© Google Maps',maxZoom:20})
-  ];
-  layers[0].addTo(map);
-  stations.forEach(plotMarker);
-}
+    function initMap() {
+      map = L.map('map', { center: [16.705, 74.295], zoom: 11 });
+      layers = [
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri, USGS', maxZoom: 19 }),
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri World Imagery', maxZoom: 19 }),
+        L.layerGroup([
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri', maxZoom: 19 }),
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: .9 })
+        ]),
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19, subdomains: 'abc' }),
+        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { attribution: '© Google Maps', maxZoom: 20 })
+      ];
+      layers[0].addTo(map);
+      stations.forEach(plotMarker);
+    }
 
-function switchLayer(i){
-  if(layers[curLayer]) map.removeLayer(layers[curLayer]);
-  curLayer=i; layers[i].addTo(map);
-  document.querySelectorAll('.lyr').forEach((el,j)=>{
-    el.style.background = j===i ? '#fff8f0' : '';
-    el.style.color = j===i ? 'var(--accent)' : '';
-    el.style.fontWeight = j===i ? 'bold' : '';
-  });
-}
+    function switchLayer(i) {
+      if (layers[curLayer]) map.removeLayer(layers[curLayer]);
+      curLayer = i; layers[i].addTo(map);
+      document.querySelectorAll('.lyr').forEach((el, j) => {
+        el.style.background = j === i ? '#fff8f0' : '';
+        el.style.color = j === i ? 'var(--accent)' : '';
+        el.style.fontWeight = j === i ? 'bold' : '';
+      });
+    }
 
-function plotMarker(s){
-  const m=L.marker([s.lat,s.lng],{icon:mkIcon(s.type)}).addTo(map);
-  m.bindPopup(`
+    function plotMarker(s) {
+      const m = L.marker([s.lat, s.lng], { icon: mkIcon(s.type) }).addTo(map);
+      m.bindPopup(`
     <div class="pop-hdr">
       <div class="pop-name">${s.name}</div>
       <div class="pop-type">${s.typeName} &nbsp;·&nbsp; ${s.siteNum}</div>
@@ -599,173 +1594,174 @@ function plotMarker(s){
     <table class="pop-tbl">
       <tr><td>Latitude</td><td>${s.lat.toFixed(6)}° N</td></tr>
       <tr><td>Longitude</td><td>${s.lng.toFixed(6)}° E</td></tr>
-      ${s.river!=='—'?`<tr><td>River</td><td>${s.river}</td></tr>`:''}
-      <tr><td>Authority</td><td>${s.auth||'—'}</td></tr>
+      ${s.river !== '—' ? `<tr><td>River</td><td>${s.river}</td></tr>` : ''}
+      <tr><td>Authority</td><td>${s.auth || '—'}</td></tr>
     </table>
     <button class="pop-btn" onclick="openModal('${s.id}')">Open Station Record</button>
-  `,{maxWidth:240});
-  markers[s.id]=m;
-}
+  `, { maxWidth: 240 });
+      markers[s.id] = m;
+    }
 
-function renderSidebar(){
-  const q=curQ.toLowerCase();
-  const list=stations.filter(s=>(curFilter==='all'||s.type===curFilter)&&(!q||s.name.toLowerCase().includes(q)||s.shortCode.toLowerCase().includes(q)||(s.river||'').toLowerCase().includes(q)));
-  document.getElementById('slist').innerHTML=list.length?list.map(s=>`
-    <div class="si${curId===s.id?' on':''}" id="si-${s.id}" onclick="selectStation('${s.id}')">
+    function renderSidebar() {
+      const q = curQ.toLowerCase();
+      const list = stations.filter(s => (curFilter === 'all' || s.type === curFilter) && (!q || s.name.toLowerCase().includes(q) || s.shortCode.toLowerCase().includes(q) || (s.river || '').toLowerCase().includes(q)));
+      document.getElementById('slist').innerHTML = list.length ? list.map(s => `
+    <div class="si${curId === s.id ? ' on' : ''}" id="si-${s.id}" onclick="selectStation('${s.id}')">
       <div class="si-ico" style="background:${COL[s.type]}15;border-color:${COL[s.type]}44">${EMO[s.type]}</div>
       <div class="si-info">
         <div class="si-name">${s.name}</div>
-        <div class="si-sub">${s.typeName} · ${s.river!=='—'?s.river:'Kolhapur'}</div>
+        <div class="si-sub">${s.typeName} · ${s.river !== '—' ? s.river : 'Kolhapur'}</div>
       </div>
       <div class="si-code">${s.shortCode}</div>
     </div>`).join('')
-    :'<p style="padding:14px;font-size:12px;color:#9c8f81;font-style:italic">No stations match the search.</p>';
-}
-
-function setFilter(f,el){
-  curFilter=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on'); renderSidebar();
-}
-function doSearch(q){ curQ=q; renderSidebar(); }
-function selectStation(id){
-  curId=id;
-  document.querySelectorAll('.si').forEach(el=>el.classList.remove('on'));
-  const el=document.getElementById('si-'+id);
-  if(el){ el.classList.add('on'); el.scrollIntoView({block:'nearest'}); }
-  const s=getS(id);
-  if(s){ map.setView([s.lat,s.lng],14,{animate:true}); markers[id]?.openPopup(); }
-  openModal(id);
-  if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('mob-open');
-}
-function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('mob-open'); }
-
-function openModal(id){
-  curId=id; const s=getS(id); if(!s) return;
-  const c=COL[s.type], b=document.getElementById('mbadge');
-  b.textContent=s.typeName; b.style.cssText=`background:${c}12;color:${c};border-color:${c}55;`;
-  document.getElementById('mtitle').textContent=s.name;
-  document.getElementById('msub').textContent=`${s.siteNum}  ·  ${s.shortCode}`;
-  document.getElementById('inf-coord').textContent=`📍  Latitude: ${s.lat.toFixed(6)}° N      Longitude: ${s.lng.toFixed(6)}° E`;
-  _v('f-id',s.id);_v('f-code',s.shortCode||'');_v('f-name',s.name||'');
-  _v('f-loc',s.location||'');_v('f-river',s.river||'');_v('f-auth',s.auth||'');
-  _v('f-host',s.host||'');_v('f-notes',s.notes||'');
-  _v('f-fab',s.fabDate||'');_v('f-ins',s.insDate||'');_v('f-com',s.comDate||'');_v('f-svc',s.svcDate||'');
-  _v('f-con',s.con||'');_v('f-conph',s.conPh||'');
-  _v('f-fabn',s.fabn||'');_v('f-fabph',s.fabPh||'');
-  _v('f-inst',s.inst||'');_v('f-ser',s.ser||'');_v('f-inotes',s.inotes||'');
-  renderContacts(s.contacts||[]); hideAC(); renderImages(s.images||[]);
-  switchTab('info',document.querySelector('.mtab'));
-  document.getElementById('ov').classList.add('open');
-}
-function closeModal(){ document.getElementById('ov').classList.remove('open'); curId=null; }
-function _v(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
-function _g(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
-function switchTab(tab,el){
-  const tabs=['info','contacts','install','images'];
-  document.querySelectorAll('.mtab').forEach((t,i)=>t.classList.toggle('on',tabs[i]===tab));
-  document.querySelectorAll('.tp').forEach((p,i)=>p.classList.toggle('on',tabs[i]===tab));
-}
-function saveStation(){
-  if(!curId) return;
-  setS(curId,{shortCode:_g('f-code'),name:_g('f-name'),location:_g('f-loc'),river:_g('f-river'),auth:_g('f-auth'),host:_g('f-host'),notes:_g('f-notes'),fabDate:_g('f-fab'),insDate:_g('f-ins'),comDate:_g('f-com'),svcDate:_g('f-svc'),con:_g('f-con'),conPh:_g('f-conph'),fabn:_g('f-fabn'),fabPh:_g('f-fabph'),inst:_g('f-inst'),ser:_g('f-ser'),inotes:_g('f-inotes')});
-  renderSidebar(); toast('Station record saved successfully.');
-}
-
-function renderContacts(cs){
-  document.getElementById('clist').innerHTML=!cs||!cs.length
-    ?'<p style="font-size:12px;color:#9c8f81;font-style:italic;padding:4px 0 8px">No site contacts recorded for this station.</p>'
-    :cs.map((c,i)=>`<div class="cc"><div class="cc-role">${c.role||'—'}</div><div class="cc-name">${c.name||'—'}</div><div class="cc-ph">📞 ${c.phone||'—'}</div><button class="cc-del" onclick="delContact(${i})" title="Remove">✕</button></div>`).join('');
-}
-function showAC(){ document.getElementById('ac-form').style.display='block'; document.getElementById('nc-r').focus(); }
-function hideAC(){ document.getElementById('ac-form').style.display='none'; ['nc-r','nc-n','nc-p'].forEach(id=>_v(id,'')); }
-function addContact(){
-  const s=getS(curId); if(!s) return;
-  const cs=[...(s.contacts||[]),{role:_g('nc-r'),name:_g('nc-n'),phone:_g('nc-p')}];
-  setS(curId,{contacts:cs}); renderContacts(cs); hideAC(); toast('Contact added.');
-}
-function delContact(i){
-  const s=getS(curId); const cs=[...(s.contacts||[])]; cs.splice(i,1);
-  setS(curId,{contacts:cs}); renderContacts(cs);
-}
-
-function getImgSrc(imgData) {
-  if (imgData.startsWith('data:') || imgData.startsWith('http')) return imgData;
-  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${imgData}`;
-}
-function renderImages(imgs){
-  document.getElementById('igrid').innerHTML=!imgs||!imgs.length
-    ?'<div class="no-img">No photographs uploaded yet.<br>Upload site and instrument images here.</div>'
-    :imgs.map((img,i)=>`<div class="ithumb"><img src="${getImgSrc(img.data)}" alt="${img.cap||''}" loading="lazy"/><div class="icap">${img.cap||('Image '+(i+1))}</div><div class="iov"><button class="ibtn" onclick="openLB(${i})">🔍</button><button class="ibtn" onclick="editCap(${i})">✏️</button><button class="ibtn" onclick="delImg(${i})">🗑</button></div></div>`).join('');
-}
-function handleFiles(e){ procFiles(Array.from(e.target.files)); e.target.value=''; }
-function dvOver(e){ e.preventDefault(); document.getElementById('upa').classList.add('dov'); }
-function dvLeave(){ document.getElementById('upa').classList.remove('dov'); }
-function dvDrop(e){ e.preventDefault(); dvLeave(); procFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))); }
-async function procFiles(files){
-  const s = getS(curId);
-  if(!s) return;
-  const token = localStorage.getItem('gh_token');
-  if(!token) { alert('Please enter your Admin Token (🔑 Admin button) to upload photos.'); return; }
-
-  const imgs = [...(s.images || [])];
-  
-  for(let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if(!file.type.startsWith('image/')) continue;
-    
-    toast(`Uploading ${file.name} (${i+1}/${files.length})...`);
-    
-    const base64Data = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width, height = img.height;
-          const MAX = 1200;
-          if(width > MAX) { height = height * (MAX / width); width = MAX; }
-          canvas.width = width; canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
-    const path = `photos/${curId}/${Date.now()}_${safeName}`;
-    
-    try {
-      await uploadToGitHub(path, base64Data, `Upload photo for ${curId}`, true);
-      imgs.push({
-        data: path,
-        cap: file.name.replace(/\.[^.]+$/, ''),
-        date: new Date().toLocaleDateString('en-IN')
-      });
-    } catch(e) {
-      alert(`Upload failed for ${file.name}: ` + e.message);
+        : '<p style="padding:14px;font-size:12px;color:#9c8f81;font-style:italic">No stations match the search.</p>';
     }
-  }
-  
-  setS(curId, { images: imgs });
-  renderImages(imgs);
-}
-function delImg(i){ if(!confirm('Remove this image from the record?')) return; const s=getS(curId); const imgs=[...(s.images||[])]; imgs.splice(i,1); setS(curId,{images:imgs}); renderImages(imgs); }
-function editCap(i){ const s=getS(curId); const cap=prompt('Edit image caption:',s.images[i]?.cap||''); if(cap===null) return; const imgs=[...(s.images||[])]; imgs[i].cap=cap; setS(curId,{images:imgs}); renderImages(imgs); }
-function openLB(i){ lbIdx=i; const s=getS(curId); if(!s||!s.images[i]) return; document.getElementById('lb-img').src=getImgSrc(s.images[i].data); document.getElementById('lb-cap').textContent=`${s.images[i].cap||'Image '+(i+1)}  —  ${s.images[i].date||''}`; document.getElementById('lb').classList.add('open'); }
-function closeLB(){ document.getElementById('lb').classList.remove('open'); }
-function lbNav(d){ const s=getS(curId); if(!s) return; lbIdx=(lbIdx+d+s.images.length)%s.images.length; openLB(lbIdx); }
 
-function setFS(px,el){ document.documentElement.style.setProperty('--fs',px+'px'); document.querySelectorAll('.ts-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
-function exportJSON(){ const s=getS(curId); if(!s) return; const blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${s.id}-${s.shortCode}.json`; a.click(); URL.revokeObjectURL(a.href); }
+    function setFilter(f, el) {
+      curFilter = f;
+      document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+      el.classList.add('on'); renderSidebar();
+    }
+    function doSearch(q) { curQ = q; renderSidebar(); }
+    function selectStation(id) {
+      curId = id;
+      document.querySelectorAll('.si').forEach(el => el.classList.remove('on'));
+      const el = document.getElementById('si-' + id);
+      if (el) { el.classList.add('on'); el.scrollIntoView({ block: 'nearest' }); }
+      const s = getS(id);
+      if (s) { map.setView([s.lat, s.lng], 14, { animate: true }); markers[id]?.openPopup(); }
+      openModal(id);
+      if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mob-open');
+    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mob-open'); }
 
-let _tt;
-function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2800); }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeLB();closeModal();} if(document.getElementById('lb').classList.contains('open')){ if(e.key==='ArrowLeft')lbNav(-1); if(e.key==='ArrowRight')lbNav(1); } });
-window.addEventListener('DOMContentLoaded', loadData);
-</script>
+    function openModal(id) {
+      curId = id; const s = getS(id); if (!s) return;
+      const c = COL[s.type], b = document.getElementById('mbadge');
+      b.textContent = s.typeName; b.style.cssText = `background:${c}12;color:${c};border-color:${c}55;`;
+      document.getElementById('mtitle').textContent = s.name;
+      document.getElementById('msub').textContent = `${s.siteNum}  ·  ${s.shortCode}`;
+      document.getElementById('inf-coord').textContent = `📍  Latitude: ${s.lat.toFixed(6)}° N      Longitude: ${s.lng.toFixed(6)}° E`;
+      _v('f-id', s.id); _v('f-code', s.shortCode || ''); _v('f-name', s.name || '');
+      _v('f-loc', s.location || ''); _v('f-river', s.river || ''); _v('f-auth', s.auth || '');
+      _v('f-host', s.host || ''); _v('f-notes', s.notes || '');
+      _v('f-fab', s.fabDate || ''); _v('f-ins', s.insDate || ''); _v('f-com', s.comDate || ''); _v('f-svc', s.svcDate || '');
+      _v('f-con', s.con || ''); _v('f-conph', s.conPh || '');
+      _v('f-fabn', s.fabn || ''); _v('f-fabph', s.fabPh || '');
+      _v('f-inst', s.inst || ''); _v('f-ser', s.ser || ''); _v('f-inotes', s.inotes || '');
+      renderContacts(s.contacts || []); hideAC(); renderImages(s.images || []);
+      switchTab('info', document.querySelector('.mtab'));
+      document.getElementById('ov').classList.add('open');
+    }
+    function closeModal() { document.getElementById('ov').classList.remove('open'); curId = null; }
+    function _v(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+    function _g(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+    function switchTab(tab, el) {
+      const tabs = ['info', 'contacts', 'install', 'images'];
+      document.querySelectorAll('.mtab').forEach((t, i) => t.classList.toggle('on', tabs[i] === tab));
+      document.querySelectorAll('.tp').forEach((p, i) => p.classList.toggle('on', tabs[i] === tab));
+    }
+    function saveStation() {
+      if (!curId) return;
+      setS(curId, { shortCode: _g('f-code'), name: _g('f-name'), location: _g('f-loc'), river: _g('f-river'), auth: _g('f-auth'), host: _g('f-host'), notes: _g('f-notes'), fabDate: _g('f-fab'), insDate: _g('f-ins'), comDate: _g('f-com'), svcDate: _g('f-svc'), con: _g('f-con'), conPh: _g('f-conph'), fabn: _g('f-fabn'), fabPh: _g('f-fabph'), inst: _g('f-inst'), ser: _g('f-ser'), inotes: _g('f-inotes') });
+      renderSidebar(); toast('Station record saved successfully.');
+    }
+
+    function renderContacts(cs) {
+      document.getElementById('clist').innerHTML = !cs || !cs.length
+        ? '<p style="font-size:12px;color:#9c8f81;font-style:italic;padding:4px 0 8px">No site contacts recorded for this station.</p>'
+        : cs.map((c, i) => `<div class="cc"><div class="cc-role">${c.role || '—'}</div><div class="cc-name">${c.name || '—'}</div><div class="cc-ph">📞 ${c.phone || '—'}</div><button class="cc-del" onclick="delContact(${i})" title="Remove">✕</button></div>`).join('');
+    }
+    function showAC() { document.getElementById('ac-form').style.display = 'block'; document.getElementById('nc-r').focus(); }
+    function hideAC() { document.getElementById('ac-form').style.display = 'none';['nc-r', 'nc-n', 'nc-p'].forEach(id => _v(id, '')); }
+    function addContact() {
+      const s = getS(curId); if (!s) return;
+      const cs = [...(s.contacts || []), { role: _g('nc-r'), name: _g('nc-n'), phone: _g('nc-p') }];
+      setS(curId, { contacts: cs }); renderContacts(cs); hideAC(); toast('Contact added.');
+    }
+    function delContact(i) {
+      const s = getS(curId); const cs = [...(s.contacts || [])]; cs.splice(i, 1);
+      setS(curId, { contacts: cs }); renderContacts(cs);
+    }
+
+    function getImgSrc(imgData) {
+      if (imgData.startsWith('data:') || imgData.startsWith('http')) return imgData;
+      return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${imgData}`;
+    }
+    function renderImages(imgs) {
+      document.getElementById('igrid').innerHTML = !imgs || !imgs.length
+        ? '<div class="no-img">No photographs uploaded yet.<br>Upload site and instrument images here.</div>'
+        : imgs.map((img, i) => `<div class="ithumb"><img src="${getImgSrc(img.data)}" alt="${img.cap || ''}" loading="lazy"/><div class="icap">${img.cap || ('Image ' + (i + 1))}</div><div class="iov"><button class="ibtn" onclick="openLB(${i})">🔍</button><button class="ibtn" onclick="editCap(${i})">✏️</button><button class="ibtn" onclick="delImg(${i})">🗑</button></div></div>`).join('');
+    }
+    function handleFiles(e) { procFiles(Array.from(e.target.files)); e.target.value = ''; }
+    function dvOver(e) { e.preventDefault(); document.getElementById('upa').classList.add('dov'); }
+    function dvLeave() { document.getElementById('upa').classList.remove('dov'); }
+    function dvDrop(e) { e.preventDefault(); dvLeave(); procFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))); }
+    async function procFiles(files) {
+      const s = getS(curId);
+      if (!s) return;
+      const token = localStorage.getItem('gh_token');
+      if (!token) { alert('Please enter your Admin Token (🔑 Admin button) to upload photos.'); return; }
+
+      const imgs = [...(s.images || [])];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+
+        toast(`Uploading ${file.name} (${i + 1}/${files.length})...`);
+
+        const base64Data = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              let width = img.width, height = img.height;
+              const MAX = 1200;
+              if (width > MAX) { height = height * (MAX / width); width = MAX; }
+              canvas.width = width; canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+        const path = `photos/${curId}/${Date.now()}_${safeName}`;
+
+        try {
+          await uploadToGitHub(path, base64Data, `Upload photo for ${curId}`, true);
+          imgs.push({
+            data: path,
+            cap: file.name.replace(/\.[^.]+$/, ''),
+            date: new Date().toLocaleDateString('en-IN')
+          });
+        } catch (e) {
+          alert(`Upload failed for ${file.name}: ` + e.message);
+        }
+      }
+
+      setS(curId, { images: imgs });
+      renderImages(imgs);
+    }
+    function delImg(i) { if (!confirm('Remove this image from the record?')) return; const s = getS(curId); const imgs = [...(s.images || [])]; imgs.splice(i, 1); setS(curId, { images: imgs }); renderImages(imgs); }
+    function editCap(i) { const s = getS(curId); const cap = prompt('Edit image caption:', s.images[i]?.cap || ''); if (cap === null) return; const imgs = [...(s.images || [])]; imgs[i].cap = cap; setS(curId, { images: imgs }); renderImages(imgs); }
+    function openLB(i) { lbIdx = i; const s = getS(curId); if (!s || !s.images[i]) return; document.getElementById('lb-img').src = getImgSrc(s.images[i].data); document.getElementById('lb-cap').textContent = `${s.images[i].cap || 'Image ' + (i + 1)}  —  ${s.images[i].date || ''}`; document.getElementById('lb').classList.add('open'); }
+    function closeLB() { document.getElementById('lb').classList.remove('open'); }
+    function lbNav(d) { const s = getS(curId); if (!s) return; lbIdx = (lbIdx + d + s.images.length) % s.images.length; openLB(lbIdx); }
+
+    function setFS(px, el) { document.documentElement.style.setProperty('--fs', px + 'px'); document.querySelectorAll('.ts-btn').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+    function exportJSON() { const s = getS(curId); if (!s) return; const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${s.id}-${s.shortCode}.json`; a.click(); URL.revokeObjectURL(a.href); }
+
+    let _tt;
+    function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 2800); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLB(); closeModal(); } if (document.getElementById('lb').classList.contains('open')) { if (e.key === 'ArrowLeft') lbNav(-1); if (e.key === 'ArrowRight') lbNav(1); } });
+    window.addEventListener('DOMContentLoaded', loadData);
+  </script>
 </body>
+
 </html>
