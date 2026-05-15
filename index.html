@@ -450,6 +450,13 @@ const GH_REPO = 'CCCSS-SUK-Instruments-Log';
 let dataSha = null;
 
 async function loadData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const key = urlParams.get('key');
+  if (key && key.startsWith('gh')) {
+    localStorage.setItem('gh_token', key);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    toast('Logged in via link.');
+  }
   try {
     const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data.json?t=${Date.now()}`);
     if (res.ok) {
